@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <string.h>
 
+#define STD GetStdHandle(STD_OUTPUT_HANDLE)
+
 typedef struct
 {
     int width;
@@ -12,9 +14,8 @@ typedef struct
 Screen_info get_screen_info()
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    HANDLE std_out = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    GetConsoleScreenBufferInfo(std_out, &csbi);
+    GetConsoleScreenBufferInfo(STD, &csbi);
     int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     int height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
@@ -22,13 +23,13 @@ Screen_info get_screen_info()
     return info;
 }
 
-void print_line(const char* line, int line_size, int screen_width, int pos_x)
+void print_line(const char* line, int line_size, int screen_width, int pos_x, int screen_line)
 {
-    if (pos_x >= line_size)
-    {
-        printf("\n");
-        return;
-    }
+    // if (pos_x >= line_size)
+    // {
+    //     printf("\n");
+    //     return;
+    // }
 
     int start_index = (pos_x / screen_width) * screen_width;
     int end_index = start_index + screen_width;
@@ -36,42 +37,47 @@ void print_line(const char* line, int line_size, int screen_width, int pos_x)
     if (end_index >= line_size)
         end_index = line_size;
 
-    printf("%.*s\n", end_index - start_index, line + start_index);
+    char* buffer = malloc(screen_width + 1);
+    memset(buffer, ' ', screen_width);
+    buffer[screen_width] = 0;
+
+    if (pos_x < line_size)
+        strncpy(buffer, line + start_index, end_index - start_index);
+    
+    DWORD written;
+    WriteConsoleOutputCharacterA(STD, buffer, screen_width, (COORD){0, screen_line}, &written);
+    free(buffer);
 }
 
-void print_file_content(const char* content, const Screen_info* screen_info, int pos_x, int pos_y)
+void print_file_content(const char* content, const Screen_info* screen_info, int pos_x, int text_line)
 {
-    int line_count = screen_info->height - 5;
+    int line_count = screen_info->height;
     int screen_width = screen_info->width;
 
-    int line_number = 0;
-    // ommit pos_y lines
-    while (line_number < pos_y)
+    // skip first text_line lines
+    for (int i = 0; i < text_line; ++i)
     {
         const char* next_line = strstr(content, "\n");
         if (next_line == NULL)
             return;
         
         content = next_line + 1;
-        ++line_number;
     }
 
-    line_number = 0;
-    while (line_number < line_count)
+    for (int screen_line = 0; screen_line < line_count; ++screen_line)
     {
-        const char* next_line = strstr(content, "\n");
+        char* next_line = strstr(content, "\n");
         if (next_line == NULL)
         {
             int line_size = strlen(content);
-            print_line(content, line_size, screen_width, pos_x);
+            print_line(content, line_size, screen_width, pos_x, screen_line);
             break;
         }
 
         int line_size = next_line - content;
-        print_line(content, line_size, screen_width, pos_x);
+        print_line(content, line_size, screen_width, pos_x, screen_line);
 
         content = next_line + 1;
-        ++line_number;
     }
 }
 
@@ -103,6 +109,10 @@ char* get_file_content(const char* filename)
 int main(int argc, char** argv)
 {
     SetConsoleOutputCP(CP_UTF8);
+    DWORD prev_mode;
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(hInput, &prev_mode);
+    SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
     Screen_info screen_info = get_screen_info();
 
     if (argc < 2)
@@ -115,33 +125,62 @@ int main(int argc, char** argv)
     char* content = get_file_content(filename);
 
     int pos_x = 0, pos_y = 0;
+    int text_line = 0;
+    INPUT_RECORD input_record;
+    DWORD events;
 
+    system("cls");
+    // printf("%d %d", screen_info.width, screen_info.height);
+    // return 1;
     for (;;)
     {
-        system("cls");
+        
+        print_file_content(content, &screen_info, pos_x, text_line);
+        SetConsoleCursorPosition(STD, (COORD){pos_x, pos_y});
+        // printf("%d %d", pos_x, pos_y);
 
-        if (GetAsyncKeyState(VK_UP) & 0x8000)
+        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &input_record, 1, &events);
+        if (input_record.EventType == KEY_EVENT && input_record.Event.KeyEvent.bKeyDown) 
         {
-            --pos_y; // down
-        }
-        if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-        {
-            ++pos_y; // up
-        }
-        if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-        {
-            --pos_x; // left
-        }
-        if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-        {
-            ++pos_x; // right
-        }
+            switch (input_record.Event.KeyEvent.wVirtualKeyCode) 
+            {
+                case VK_UP:
+                {
+                    if (pos_y > 0)
+                        --pos_y;
+                    else if (text_line > 0)
+                        --text_line;
 
-        print_file_content(content, &screen_info, pos_x, pos_y);
-        printf("%d %d", pos_x, pos_y);
+                    break;
+                }
+                case VK_DOWN:
+                {
+                    if (pos_y < screen_info.height - 1)
+                        ++pos_y;
+                    else
+                        ++text_line;
+                        
+                    break;
+                }
+                case VK_LEFT:
+                    if (pos_x > 0) 
+                    {
+                        pos_x--;
+                    }
+                    break;
+                case VK_RIGHT:
+                    pos_x++;
+                    break;
+                case VK_ESCAPE:
+                    goto end;
+            }
+        }
+        
 
         Sleep(50);
     }
+
+end:
 
     free(content);
     return 0;
