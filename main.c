@@ -106,6 +106,26 @@ char* get_file_content(const char* filename)
     return content;
 }
 
+int count_lines(const char* file_content)
+{
+    int lines = 0;
+    char* line_start = (char*)file_content;
+    while (*line_start != 0)
+    {
+        char* line_end = strstr(line_start, "\n");
+        if (line_end == NULL)
+        {
+            ++lines;
+            return lines;
+        }
+
+        ++lines;
+        line_start = line_end + 1;
+    }
+
+    return lines + 1;
+}
+
 int main(int argc, char** argv)
 {
     SetConsoleOutputCP(CP_UTF8);
@@ -113,8 +133,9 @@ int main(int argc, char** argv)
     HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(hInput, &prev_mode);
     SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
-    Screen_info screen_info = get_screen_info();
 
+
+    Screen_info screen_info = get_screen_info();
     if (argc < 2)
     {
         fprintf(stderr, "Nazwa pliku.\n");
@@ -123,6 +144,7 @@ int main(int argc, char** argv)
 
     char* filename = argv[1];
     char* content = get_file_content(filename);
+    int line_count = count_lines(content);
 
     int pos_x = 0, pos_y = 0;
     int text_line = 0;
@@ -155,10 +177,15 @@ int main(int argc, char** argv)
                 }
                 case VK_DOWN:
                 {
+                    if (pos_y == line_count - 1)
+                        break;
                     if (pos_y < screen_info.height - 1)
                         ++pos_y;
                     else
-                        ++text_line;
+                    {
+                        if (text_line < line_count - 1)
+                            ++text_line;
+                    }
                         
                     break;
                 }
@@ -181,7 +208,7 @@ int main(int argc, char** argv)
     }
 
 end:
-
+    system("cls");
     free(content);
     return 0;
 }

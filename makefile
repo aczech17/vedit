@@ -1,5 +1,8 @@
 default:	vedit
 
+empty:	vedit
+	./vedit empty.txt
+
 short:	vedit
 	./vedit short.txt
 run:	vedit
