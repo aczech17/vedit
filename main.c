@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <string.h>
+#include "text_info.h"
 
 #define STD GetStdHandle(STD_OUTPUT_HANDLE)
 
@@ -100,26 +100,6 @@ char* get_file_content(const char* filename)
     return content;
 }
 
-int count_lines(const char* file_content)
-{
-    int lines = 0;
-    char* line_start = (char*)file_content;
-    while (*line_start != 0)
-    {
-        char* line_end = strstr(line_start, "\n");
-        if (line_end == NULL)
-        {
-            ++lines;
-            return lines;
-        }
-
-        ++lines;
-        line_start = line_end + 1;
-    }
-
-    return lines + 1;
-}
-
 int main(int argc, char** argv)
 {
     SetConsoleOutputCP(CP_UTF8);
@@ -138,7 +118,9 @@ int main(int argc, char** argv)
 
     char* filename = argv[1];
     char* content = get_file_content(filename);
-    int line_count = count_lines(content);
+    Text_info* text_info = get_text_info(content);
+    int line_count = text_info != NULL ? text_info->line_count : 0;
+
 
     int pos_x = 0, pos_y = 0;
     int text_line = 0;
@@ -168,7 +150,7 @@ int main(int argc, char** argv)
                 }
                 case VK_DOWN:
                 {
-                    if (pos_y == line_count - 1)
+                    if (pos_y >= line_count - 1)
                         break;
                     if (pos_y < screen_info.height - 1)
                         ++pos_y;
@@ -196,7 +178,9 @@ int main(int argc, char** argv)
     }
 
 end:
-    system("cls");
+    free_text_info(text_info);
     free(content);
+
+    system("cls");
     return 0;
 }
