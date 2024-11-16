@@ -2,7 +2,8 @@ default:	vedit
 
 vedit:	main.c text_info.c
 	gcc -Wall -Wextra main.c text_info.c -o vedit
-
+english:	vedit
+	./vedit english.txt
 empty:	vedit
 	./vedit empty.txt
 short:	vedit
