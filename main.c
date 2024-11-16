@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include "text_info.h"
+#include "text.h"
 
 #define STD GetStdHandle(STD_OUTPUT_HANDLE)
 
@@ -42,35 +42,18 @@ void print_line(const char* line, int line_size, int screen_width, int cursor_x,
     free(buffer);
 }
 
-void print_file_content(const char* content, const Screen_info* screen_info, int cursor_x, int text_line)
+void print_file_content(const Text* text, const Screen_info* screen_info, int cursor_x, int first_text_line)
 {
-    int line_count = screen_info->height;
+    int line_count = text->line_count < screen_info->height ? text->line_count : screen_info->height;
     int screen_width = screen_info->width;
-
-    // skip first text_line lines
-    for (int i = 0; i < text_line; ++i)
-    {
-        const char* next_line = strstr(content, "\n");
-        if (next_line == NULL)
-            return;
-        
-        content = next_line + 1;
-    }
 
     for (int screen_line = 0; screen_line < line_count; ++screen_line)
     {
-        char* next_line = strstr(content, "\n");
-        if (next_line == NULL)
-        {
-            int line_size = strlen(content);
-            print_line(content, line_size, screen_width, cursor_x, screen_line);
-            break;
-        }
+        int text_line_number = screen_line + first_text_line;
+        char* line = text->lines[text_line_number];
+        int line_size = text->line_sizes[text_line_number];
 
-        int line_size = next_line - content;
-        print_line(content, line_size, screen_width, cursor_x, screen_line);
-
-        content = next_line + 1;
+        print_line(line, line_size, screen_width, cursor_x, screen_line);
     }
 }
 
@@ -117,8 +100,10 @@ int main(int argc, char** argv)
 
     char* filename = argv[1];
     char* content = get_file_content(filename);
-    Text_info* text_info = get_text_info(content);
-    int line_count = text_info != NULL ? text_info->line_count : 0;
+    Text* text = get_text(content);
+    free(content);
+
+    int line_count = text != NULL ? text->line_count : 0;
 
     int pos_x = 0, pos_y = 0;
     int first_text_line = 0;
@@ -129,11 +114,11 @@ int main(int argc, char** argv)
     for (;;)
     {
         int text_line = first_text_line + pos_y;
-        int line_size = text_info->line_sizes[text_line];
+        int line_size = text->line_sizes[text_line];
         if (pos_x > line_size)
             pos_x = line_size;
 
-        print_file_content(content, &screen_info, pos_x, first_text_line);
+        print_file_content(text, &screen_info, pos_x, first_text_line);
         SetConsoleCursorPosition(STD, (COORD){pos_x % screen_info.width, pos_y});
 
         ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &input_record, 1, &events);
@@ -190,8 +175,8 @@ int main(int argc, char** argv)
     }
 
 end:
-    free_text_info(text_info);
-    free(content);
+    free_text(text);
+    // free(content);
 
     system("cls");
     return 0;
