@@ -177,6 +177,12 @@ int main(int argc, char** argv)
                     pos_x++;
                     break;
                 }
+                case VK_HOME:
+                    pos_x = 0;
+                    break;
+                case VK_END:
+                    pos_x = line_size;
+                    break;
                 case VK_ESCAPE:
                     goto end;
             }
