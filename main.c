@@ -25,12 +25,6 @@ Screen_info get_screen_info()
 
 void print_line(const char* line, int line_size, int screen_width, int pos_x, int screen_line)
 {
-    // if (pos_x >= line_size)
-    // {
-    //     printf("\n");
-    //     return;
-    // }
-
     int start_index = (pos_x / screen_width) * screen_width;
     int end_index = start_index + screen_width;
 
@@ -152,14 +146,11 @@ int main(int argc, char** argv)
     DWORD events;
 
     system("cls");
-    // printf("%d %d", screen_info.width, screen_info.height);
-    // return 1;
     for (;;)
     {
         
         print_file_content(content, &screen_info, pos_x, text_line);
         SetConsoleCursorPosition(STD, (COORD){pos_x, pos_y});
-        // printf("%d %d", pos_x, pos_y);
 
         ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &input_record, 1, &events);
         if (input_record.EventType == KEY_EVENT && input_record.Event.KeyEvent.bKeyDown) 
@@ -202,9 +193,6 @@ int main(int argc, char** argv)
                     goto end;
             }
         }
-        
-
-        Sleep(50);
     }
 
 end:
