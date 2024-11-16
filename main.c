@@ -57,30 +57,6 @@ void print_file_content(const Text* text, const Screen_info* screen_info, int cu
     }
 }
 
-char* get_file_content(const char* filename)
-{
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL)
-        return NULL;
-
-    fseek(file, 0, SEEK_END);
-    size_t file_size = (size_t) ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char* content = malloc(file_size + 1);
-    size_t bytes_read = fread(content, 1, file_size, file);
-    if (bytes_read < file_size)
-    {
-        free(content);
-        fclose(file);
-        return NULL;
-    }
-
-    content[file_size] = 0;
-    fclose(file);
-
-    return content;
-}
 
 int main(int argc, char** argv)
 {
@@ -94,14 +70,20 @@ int main(int argc, char** argv)
     Screen_info screen_info = get_screen_info();
     if (argc < 2)
     {
-        fprintf(stderr, "Nazwa pliku.\n");
+        fprintf(stderr, "Filename missing.\n");
         return 1;
     }
 
     char* filename = argv[1];
-    char* content = get_file_content(filename);
-    Text* text = get_text(content);
-    free(content);
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL)
+    {
+        fprintf(stderr, "Cannot open the file.\n");
+        return 2;
+    }
+
+    Text* text = get_text(file);
+    fclose(file);
 
     int line_count = text != NULL ? text->line_count : 0;
 

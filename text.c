@@ -5,6 +5,24 @@
 
 #define PUSH_LINE(line, line_size) if (!push_line(text, line, line_size)) {free_text(text); return NULL;}
 
+static char* get_file_content(FILE* file)
+{
+    fseek(file, 0, SEEK_END);
+    size_t file_size = (size_t) ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char* content = malloc(file_size + 1);
+    size_t bytes_read = fread(content, 1, file_size, file);
+    if (bytes_read < file_size)
+    {
+        free(content);
+        return NULL;
+    }
+
+    content[file_size] = 0;
+    return content;
+}
+
 static bool resize(Text* text)
 {
     int new_capacity = 2 * text->capacity;
@@ -60,8 +78,10 @@ static bool push_line(Text* text, const char* line, int line_size)
     return true;
 }
 
-Text* get_text(const char* file_content)
+Text* get_text(FILE* file)
 {
+    char* file_content = get_file_content(file);
+
     const int initial_capacity = 25;
 
     Text* text = malloc(sizeof(Text));
@@ -86,7 +106,6 @@ Text* get_text(const char* file_content)
         return NULL;
     }
 
-    
 
     char* line_start = (char*)file_content;
     while (*line_start != 0)
@@ -109,6 +128,7 @@ Text* get_text(const char* file_content)
 
     PUSH_LINE("", 0)   // empty line at the end
 
+    free(file_content);
     return text;
 }
 

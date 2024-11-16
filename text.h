@@ -1,6 +1,8 @@
 #ifndef TEXT_H
 #define TEXT_H
 
+#include <stdio.h>
+
 typedef struct
 {
     char** lines;
@@ -9,7 +11,7 @@ typedef struct
     int capacity;
 }Text;
 
-Text* get_text(const char* file_content);
-void free_text(Text* text);
+Text* get_text(FILE*);
+void free_text(Text*);
 
 #endif // TEXT_H
