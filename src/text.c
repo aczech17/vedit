@@ -114,6 +114,37 @@ Text* get_text(FILE* file)
     return text;
 }
 
+void delete_character(Text* text, int line_number, int char_number)
+{
+    if (line_number >= text->line_count)
+        return;
+    
+    char* line = text->lines[line_number];
+    char* new_line = calloc(strlen(line), 1); // strlen - 1 (because of deletion) + 1 (because of '\0') = strlen
+
+    for (int i = 0; i < char_number; ++i)
+        new_line[i] = line[i];
+    
+    for (int i = char_number + 1; line[i] != 0; ++i)
+        new_line[i - 1] = line[i];
+
+    free(line);
+    text->lines[line_number] = new_line;
+}
+
+void delete_line(Text* text, int line_number)
+{
+    if (line_number >= text->line_count)
+        return;
+        
+    free(text->lines[line_number]);
+
+    for (int i = line_number; i < text->line_count - 1; ++i)
+        text->lines[i] = text->lines[i + 1];
+
+    --text->line_count;
+}
+
 void free_text(Text* text)
 {
     if (text == NULL)

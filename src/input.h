@@ -4,6 +4,6 @@
 #include "text.h"
 #include "display_info.h"
 
-int read_input(const Text* text, Display_info* display_info);
+int read_input(Text* text, Display_info* display_info);
 
 #endif // INPUT_H
