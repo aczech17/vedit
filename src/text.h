@@ -6,7 +6,6 @@
 typedef struct
 {
     char** lines;
-    int* line_sizes;
     int line_count;
     int capacity;
 }Text;

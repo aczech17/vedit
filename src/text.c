@@ -43,13 +43,6 @@ static bool resize(Text* text)
         free(text->lines);
         return false;
     }
-
-    memcpy(new_line_sizes, text->line_sizes, text->line_count * sizeof(int));
-    free(text->line_sizes);
-    text->line_sizes = new_line_sizes;
-
-    
-
     text->capacity = new_capacity;
 
     return true;
@@ -70,8 +63,6 @@ static bool push_line(Text* text, const char* line, int line_size)
     memcpy(new_line, line, line_size);
     new_line[line_size] = 0;
     text->lines[text->line_count] = new_line;
-
-    text->line_sizes[text->line_count] = line_size;
 
     ++text->line_count;
 
@@ -97,15 +88,6 @@ Text* get_text(FILE* file)
         free(text);
         return NULL;
     }
-
-    text->line_sizes = malloc(text->capacity * sizeof(int));
-    if (text->line_sizes == NULL)
-    {
-        free(text->lines);
-        free(text);
-        return NULL;
-    }
-
 
     char* line_start = (char*)file_content;
     while (*line_start != 0)
@@ -141,6 +123,5 @@ void free_text(Text* text)
         free(text->lines[i]);
 
     free(text->lines);
-    free(text->line_sizes);
     free(text);
 }

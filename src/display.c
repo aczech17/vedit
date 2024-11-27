@@ -30,7 +30,7 @@ void display(const Text* text, const Display_info* info)
     {
         int text_line_number = screen_line + info->first_text_line;
         char* line = text->lines[text_line_number];
-        int line_size = text->line_sizes[text_line_number];
+        int line_size = strlen(text->lines[text_line_number]);
 
         print_line(line, line_size, screen_width, info->cursor_x, screen_line);
     }

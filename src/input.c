@@ -7,7 +7,7 @@ int read_input(const Text* text, Display_info* display_info)
     DWORD events;
 
     int current_text_line = display_info->first_text_line + display_info->cursor_y;
-    int current_text_line_size = text->line_sizes[current_text_line];
+    int current_text_line_size = strlen(text->lines[current_text_line]);
     if (display_info->cursor_x > current_text_line_size)
         display_info->cursor_x = current_text_line_size;
 
