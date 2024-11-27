@@ -1,15 +1,15 @@
 default:	vedit
 
-vedit:	main.c text.c
-	gcc -Wall -Wextra main.c text.c -o vedit
+vedit:	src/main.c src/text.c
+	gcc -Wall -Wextra src/main.c src/text.c -o vedit
 english:	vedit
-	./vedit english.txt
+	./vedit test/english.txt
 empty:	vedit
-	./vedit empty.txt
+	./vedit test/empty.txt
 short:	vedit
-	./vedit short.txt
+	./vedit test/short.txt
 macbeth:	vedit
-	./vedit macbeth.txt
+	./vedit test/macbeth.txt
 tadeusz:	vedit
-	./vedit pan-tadeusz.txt
+	./vedit test/pan-tadeusz.txt
 
