@@ -1,7 +1,9 @@
+SRC = src/*.c
+
 default:	vedit
 
-vedit:	src/main.c src/text.c
-	gcc -Wall -Wextra src/main.c src/text.c -o vedit
+vedit:	$(SRC)
+	gcc -Wall -Wextra $(SRC) -o vedit
 english:	vedit
 	./vedit test/english.txt
 empty:	vedit
