@@ -238,6 +238,7 @@ void split_lines(Text* text, int line_number, int split_position)
 
     // Now push the second half to the end.
     push_line(text, second_half, second_half_size);
+    free(second_half);  // The copy has been made.
 
     // The memory is already allocated.
     // Now we have to move the pointers.
