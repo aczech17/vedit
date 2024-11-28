@@ -162,19 +162,44 @@ Text* get_text(FILE* file)
     return text;
 }
 
-void delete_character(Text* text, int line_number, int char_number)
+void push_character(Text* text, int line_number, int char_position, char value)
+{
+    if (line_number >= text->line_count)
+        return;
+
+    char* line = text->lines[line_number];
+    int line_size = strlen(line);
+    char* new_line = malloc(line_size + 2);
+
+    for (int i = 0; i < char_position; ++i)
+        new_line[i] = line[i];
+
+    new_line[char_position] = value;
+
+    for (int i = char_position; i < line_size; ++i)
+        new_line[i + 1] = line[i];
+    new_line[line_size + 1] = 0;
+    
+    free(text->lines[line_number]);
+    text->lines[line_number] = new_line;
+}
+
+void delete_character(Text* text, int line_number, int char_position)
 {
     if (line_number >= text->line_count)
         return;
     
     char* line = text->lines[line_number];
-    char* new_line = calloc(strlen(line), 1); // strlen - 1 (because of deletion) + 1 (because of '\0') = strlen
+    int old_line_size = strlen(line);
+    char* new_line = malloc(old_line_size); // -1 because of deletion and + 1 because of '\0'. -1 + 1 = 0
 
-    for (int i = 0; i < char_number; ++i)
+    for (int i = 0; i < char_position; ++i)
         new_line[i] = line[i];
     
-    for (int i = char_number + 1; line[i] != 0; ++i)
+    for (int i = char_position + 1; i < old_line_size; ++i)
         new_line[i - 1] = line[i];
+
+    new_line[old_line_size - 1] = 0; // Size of the buffer is old_line_size, so the terminator index is old_line_size - 1.
 
     free(line);
     text->lines[line_number] = new_line;

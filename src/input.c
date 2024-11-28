@@ -72,16 +72,21 @@ int read_input(Text* text, Display_info* display_info)
                 display_info->cursor_x = current_text_line_size;
                 break;
             }
-            case 'X':
+            default:
             {
-                delete_character(text, current_text_line, display_info->cursor_x);
-                break;
+                push_character(text, current_text_line, display_info->cursor_x, input_key);
+                ++display_info->cursor_x;
             }
-            case 'D':
-            {
-                delete_line(text, current_text_line);
-                break;
-            }
+            // case 'X':
+            // {
+            //     delete_character(text, current_text_line, display_info->cursor_x);
+            //     break;
+            // }
+            // case 'D':
+            // {
+            //     delete_line(text, current_text_line);
+            //     break;
+            // }
         }
     }
 

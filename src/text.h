@@ -11,7 +11,8 @@ typedef struct
 }Text;
 
 Text* get_text(FILE*);
-void delete_character(Text* text, int line_number, int char_number);
+void push_character(Text* text, int line_number, int char_position, char value);
+void delete_character(Text* text, int line_number, int char_position);
 void delete_line(Text* text, int line_number);
 void free_text(Text*);
 
