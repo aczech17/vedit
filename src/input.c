@@ -72,6 +72,13 @@ int read_input(Text* text, Display_info* display_info)
                 display_info->cursor_x = current_text_line_size;
                 break;
             }
+            case VK_RETURN:
+            {
+                split_lines(text, current_text_line, display_info->cursor_x);
+                ++display_info->cursor_y;
+                display_info->cursor_x = 0;
+                break;
+            }
             default:
             {
                 push_character(text, current_text_line, display_info->cursor_x, input_key);

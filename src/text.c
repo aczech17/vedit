@@ -218,6 +218,36 @@ void delete_line(Text* text, int line_number)
     --text->line_count;
 }
 
+void split_lines(Text* text, int line_number, int split_position)
+{
+    char* line = text->lines[line_number];
+
+    char* first_half = malloc(split_position + 1);
+    memcpy(first_half, line, split_position);
+    first_half[split_position] = 0;
+
+    int second_half_size = strlen(line) - split_position + 1;
+    char* second_half = malloc(second_half_size);
+    memcpy(second_half, line + split_position, second_half_size); // We're also copying the '\0' here.
+
+    // Replace the line with the first half.
+    free(text->lines[line_number]);
+    text->lines[line_number] = first_half;
+
+    // The second half should be on the position line_number + 1.
+
+    // Now push the second half to the end.
+    push_line(text, second_half, second_half_size);
+
+    // The memory is already allocated.
+    // Now we have to move the pointers.
+    // Move down to line_number + 2.
+    char* new_line = text->lines[text->line_count - 1];
+    for (int i = text->line_count - 1; i >= line_number + 2; --i)
+        text->lines[i] = text->lines[i - 1];
+    text->lines[line_number + 1] = new_line;
+}
+
 void free_text(Text* text)
 {
     if (text == NULL)
