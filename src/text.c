@@ -3,6 +3,12 @@
 #include <string.h>
 #include <stdbool.h>
 
+typedef struct
+{
+    char* start;
+    int size;
+}Endline;
+
 #define PUSH_LINE(line, line_size) if (!push_line(text, line, line_size)) {free_text(text); return NULL;}
 
 static char* get_file_content(FILE* file)
@@ -69,6 +75,47 @@ static bool push_line(Text* text, const char* line, int line_size)
     return true;
 }
 
+static Endline find_endline(const char* line)
+{
+    const int CR = 0xD;
+    const int LF = 0xA;
+
+    char* cr_pos = strchr(line, CR);
+    char* lf_pos = strchr(line, LF);
+
+    char* start;
+    int size;
+    
+    if (cr_pos && lf_pos)
+    {
+        start = cr_pos;
+        size = 2;
+    }
+    if (cr_pos && !lf_pos)
+    {
+        start = cr_pos;
+        size = 1;
+    }
+    if (!cr_pos && lf_pos)
+    {
+        start = lf_pos;
+        size = 1;
+    }
+    if (!cr_pos && !lf_pos)
+    {
+        start = NULL;
+        size = 0;
+    }
+
+    Endline endline =
+    {
+        .start = start,
+        .size = size,
+    };
+
+    return endline;
+}
+
 Text* get_text(FILE* file)
 {
     char* file_content = get_file_content(file);
@@ -89,11 +136,12 @@ Text* get_text(FILE* file)
         return NULL;
     }
 
+
     char* line_start = (char*)file_content;
     while (*line_start != 0)
     {
-        char* line_end = strchr(line_start, '\n');
-        if (line_end == NULL)
+        Endline endline = find_endline(line_start);
+        if (endline.start == NULL)
         {
             // no empty line at the end
             int line_size = strlen(line_start);
@@ -102,10 +150,10 @@ Text* get_text(FILE* file)
             return text;
         }
 
-        int line_size = line_end - line_start;
+        int line_size = endline.start - line_start;
         push_line(text, line_start, line_size);
 
-        line_start = line_end + 1;
+        line_start = endline.start + endline.size;
     }
 
     PUSH_LINE("", 0)   // empty line at the end
