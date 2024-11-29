@@ -15,8 +15,34 @@ void console_setup()
     SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
 }
 
+void update_view(const Text* text, Display_info* display_info)
+{
+    if (display_info->cursor_y >= text->line_count)
+    {
+        display_info->cursor_y = text->line_count - 1;
+        return;
+    }
+
+
+    if (display_info->cursor_y == display_info->screen_height)
+    {
+        ++display_info->first_text_line;
+        display_info->cursor_y = display_info->screen_height - 1;
+    }
+
+
+    if (display_info->cursor_y < 0)
+    {
+        if (display_info->first_text_line > 0)
+            --display_info->first_text_line;
+        display_info->cursor_y = 0;
+    }
+}
+
 int main(int argc, char** argv)
 {
+    // 30 LINII
+
     console_setup();   
     Display_info display_info = get_display_info();
     
@@ -50,10 +76,17 @@ int main(int argc, char** argv)
         if (input_key == VK_ESCAPE)
             break;
 
+        // if (display_info.cursor_y >= text->line_count)
+        // {
+        //     exit(text->line_count);
+        // }
+        update_view(text, &display_info);
         display(text, &display_info);
     }
 
-    free_text(text);
+    // free_text(text);
     system("cls");
+
+    printf("ostatnia linia: %s\n", text->lines[text->line_count - 1]);
     return 0;
 }

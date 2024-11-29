@@ -1,4 +1,4 @@
-SRC = src/*.c
+SRC = src/display_info.c src/display.c src/input.c src/main.c src/text.c
 
 default:	vedit
 

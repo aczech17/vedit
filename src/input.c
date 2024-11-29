@@ -26,25 +26,27 @@ int read_input(Text* text, Display_info* display_info)
         {
             case VK_UP:
             {
-                if (display_info->cursor_y > 0)
-                    --display_info->cursor_y;
-                else if (display_info->first_text_line > 0)
-                    --display_info->first_text_line;
+                // if (display_info->cursor_y > 0)
+                //     --display_info->cursor_y;
+                // else if (display_info->first_text_line > 0)
+                //     --display_info->first_text_line;
 
+                --display_info->cursor_y;
                 break;
             }
             case VK_DOWN:
             {
-                if (display_info->cursor_y >= text->line_count - 1)
-                    break;
-                if (display_info->cursor_y < display_info->screen_height - 1)
-                    ++display_info->cursor_y;
-                else
-                {
-                    if (display_info->first_text_line < text->line_count - 1)
-                        ++display_info->first_text_line;
-                }
+                // if (display_info->cursor_y >= text->line_count - 1)
+                //     break;
+                // if (display_info->cursor_y < display_info->screen_height - 1)
+                //     ++display_info->cursor_y;
+                // else
+                // {
+                //     if (display_info->first_text_line < text->line_count - 1)
+                //         ++display_info->first_text_line;
+                // }
 
+                ++display_info->cursor_y;
                 break;
             }
             case VK_LEFT:
@@ -77,6 +79,10 @@ int read_input(Text* text, Display_info* display_info)
                 split_lines(text, current_text_line, display_info->cursor_x);
                 ++display_info->cursor_y;
                 display_info->cursor_x = 0;
+                break;
+            }
+            case VK_ESCAPE:
+            {
                 break;
             }
             default:
