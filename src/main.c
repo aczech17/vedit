@@ -24,10 +24,10 @@ void update_view(const Text* text, Display_info* display_info)
     }
 
 
-    if (display_info->cursor_y == display_info->screen_height)
+    if (display_info->cursor_y == display_info->text_height)
     {
         ++display_info->first_text_line;
-        display_info->cursor_y = display_info->screen_height - 1;
+        display_info->cursor_y = display_info->text_height - 1;
     }
 
 
@@ -81,12 +81,11 @@ int main(int argc, char** argv)
         //     exit(text->line_count);
         // }
         update_view(text, &display_info);
-        display(text, &display_info);
+        display_text(text, &display_info);
+        display_log(text, &display_info);
     }
 
-    // free_text(text);
+    free_text(text);
     system("cls");
-
-    printf("ostatnia linia: %s\n", text->lines[text->line_count - 1]);
     return 0;
 }
