@@ -1,8 +1,12 @@
 #include "display.h"
 #include "display_info.h"
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
+#elif __linux__
+#include <stdio.h>
 #endif
 
 static void set_cursor_position(int x, int y)

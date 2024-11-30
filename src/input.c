@@ -1,5 +1,10 @@
 #include "input.h"
 
+#ifdef __linux__
+#include <string.h>
+#include <unistd.h>
+#endif
+
 static Key_code special_key(Key_type key_type)
 {
     return (Key_code){.key_type = key_type, .value = 0};

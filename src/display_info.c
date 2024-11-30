@@ -4,6 +4,8 @@
 #include <windows.h>
 #elif __linux__
 #include <sys/ioctl.h>
+#include <unistd.h>
+#include <stdio.h>
 #endif
 
 Display_info get_display_info()

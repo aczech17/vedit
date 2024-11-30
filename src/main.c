@@ -1,12 +1,15 @@
 #ifdef _WIN32
 #include <windows.h>
 #elif __linux__
+#include <termios.h>
+#include <unistd.h>
 #else
 #error "Unsupported OS."
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "text.h"
 #include "display_info.h"
 #include "display.h"
