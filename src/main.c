@@ -15,34 +15,86 @@ void console_setup()
     SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
 }
 
-void update_view(const Text* text, Display_info* display_info)
+void update_text(Text* text, Display_info* display_info, int input_key)
 {
-    if (display_info->cursor_y >= text->line_count)
+    switch (input_key)
     {
-        display_info->cursor_y = text->line_count - 1;
-        return;
+        case VK_RETURN:
+        {
+            int current_text_line = display_info->first_text_line + display_info->cursor_y;
+            int line_split_position = display_info->cursor_x;
+
+            split_lines(text, current_text_line, line_split_position);
+            display_info->cursor_y++;
+            break;
+        }
+    }
+}
+
+void update_view(const Text* text, Display_info* display_info, int input_key)
+{
+    int current_text_line = display_info->first_text_line + display_info->cursor_y;
+    int current_text_line_size = strlen(text->lines[current_text_line]);
+
+    switch (input_key)
+    {
+        case VK_DOWN:
+        {
+            display_info->cursor_y++;
+            break;
+        }
+        case VK_UP:
+        {
+            display_info->cursor_y--;
+            break;
+        }
+        case VK_LEFT:
+        {
+            display_info->cursor_x--;
+            break;
+        }
+        case VK_RIGHT:
+        {
+            display_info->cursor_x++;
+            break;
+        }
+        case VK_HOME:
+        {
+            display_info->cursor_x = 0;
+            break;
+        }
+        case VK_END:
+        {
+            display_info->cursor_x = current_text_line_size;
+            break;
+        }
     }
 
+    if (display_info->cursor_x >= current_text_line_size)
+        display_info->cursor_x = current_text_line_size;
+
+    if (display_info->cursor_y == text->line_count)
+        display_info->cursor_y = text->line_count - 1;
 
     if (display_info->cursor_y == display_info->text_height)
     {
-        ++display_info->first_text_line;
-        display_info->cursor_y = display_info->text_height - 1;
+        int new_last_line = display_info->first_text_line + display_info->text_height - 1;
+        if (new_last_line < text->line_count - 1)
+            display_info->first_text_line++;
+        display_info->cursor_y--;
     }
-
 
     if (display_info->cursor_y < 0)
     {
         if (display_info->first_text_line > 0)
-            --display_info->first_text_line;
+            display_info->first_text_line--;
+
         display_info->cursor_y = 0;
     }
 }
 
 int main(int argc, char** argv)
 {
-    // 30 LINII
-
     console_setup();   
     Display_info display_info = get_display_info();
     
@@ -72,15 +124,12 @@ int main(int argc, char** argv)
     system("cls");
     for (;;)
     {
-        int input_key = read_input(text, &display_info);
+        int input_key = read_input();
         if (input_key == VK_ESCAPE)
             break;
 
-        // if (display_info.cursor_y >= text->line_count)
-        // {
-        //     exit(text->line_count);
-        // }
-        update_view(text, &display_info);
+        update_text(text, &display_info, input_key);
+        update_view(text, &display_info, input_key);
         display_text(text, &display_info);
         display_log(text, &display_info);
     }

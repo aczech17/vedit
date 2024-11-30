@@ -53,5 +53,14 @@ void display_log(const Text* text, const Display_info* display_info)
         (COORD){0, display_info->text_height}, &written
     );
 
+    memset(log, ' ', display_info->screen_width);
+    sprintf(log, "cursor: %d, %d", display_info->cursor_x, display_info->cursor_y);
+
+    
+    WriteConsoleOutputCharacterA(
+        GetStdHandle(STD_OUTPUT_HANDLE), log, display_info->screen_width, 
+        (COORD){0, display_info->text_height + 1}, &written
+    );
+
     free(log);
 }
