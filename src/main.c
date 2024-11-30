@@ -1,6 +1,12 @@
+#ifdef _WIN32
+#include <windows.h>
+#elif __linux__
+#else
+#error "Unsupported OS."
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 #include "text.h"
 #include "display_info.h"
 #include "display.h"
@@ -8,11 +14,27 @@
 
 void console_setup()
 {
-    SetConsoleOutputCP(CP_UTF8);
-    DWORD prev_mode;
-    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(hInput, &prev_mode);
-    SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+        DWORD prev_mode;
+        HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+        GetConsoleMode(hInput, &prev_mode);
+        SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+    #elif __linux__
+        system("stty raw -echo");
+    #else
+        #error "Terminal configuration for this OS is not implemented."
+    #endif
+}
+
+void console_cleanup()
+{
+    #ifdef _WIN32
+        system("cls");
+    #elif __linux__
+        system("stty cooked echo"); // Reset to default settings.
+        system("clear");
+    #endif
 }
 
 void update_text(Text* text, Display_info* display_info, int input_key)
@@ -135,6 +157,7 @@ int main(int argc, char** argv)
     }
 
     free_text(text);
-    system("cls");
+
+    console_cleanup();
     return 0;
 }
