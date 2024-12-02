@@ -46,7 +46,11 @@ static Key_code convert_key_code_windows(int winapi_input_key)
         case VK_ESCAPE: // Obsługuje ESCAPE
             return special_key(ESCAPE);
         default:
-            return alphanumeric(winapi_input_key);
+        {
+            if (isalnum(winapi_input_key))
+                return alphanumeric(winapi_input_key);
+            return no_key();
+        }
     }
 }
 

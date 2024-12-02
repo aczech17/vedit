@@ -186,8 +186,16 @@ void push_character(Text* text, int line_number, int char_position, char value)
 
 void delete_character(Text* text, int line_number, int char_position)
 {
-    if (line_number >= text->line_count)
+    // if (line_number >= text->line_count)
+    //     return;
+
+    if (char_position == -1)
+    {
+        if (line_number > 0)
+            join_lines(text, line_number - 1);
+        // else
         return;
+    }
     
     char* line = text->lines[line_number];
     int old_line_size = strlen(line);
@@ -247,6 +255,30 @@ void split_lines(Text* text, int line_number, int split_position)
     for (int i = text->line_count - 1; i >= line_number + 2; --i)
         text->lines[i] = text->lines[i - 1];
     text->lines[line_number + 1] = new_line;
+}
+
+void join_lines(Text* text, int upper_line_number)
+{
+    char* upper_line = text->lines[upper_line_number];
+    int upper_line_size = strlen(upper_line);
+
+    char* lower_line = text->lines[upper_line_number + 1];
+    int lower_line_size = strlen(lower_line);
+
+    int new_line_size = upper_line_size + lower_line_size;
+    char* new_line = malloc(new_line_size + 1);
+    memcpy(new_line, upper_line, upper_line_size);
+    memcpy(new_line + upper_line_size, lower_line, lower_line_size);
+    new_line[new_line_size] = 0;
+
+    free(text->lines[upper_line_number]);
+    free(text->lines[upper_line_number + 1]);
+    text->lines[upper_line_number] = new_line;
+
+    for (int i = upper_line_number + 1; i < text->line_count - 1; ++i)
+        text->lines[i] = text->lines[i + 1];
+    
+    text->line_count--;
 }
 
 void free_text(Text* text)

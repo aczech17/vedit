@@ -67,20 +67,58 @@ void clear_screen()
 
 void update_text(Text* text, Display_info* display_info, Key_code input_key)
 {
-    if (input_key.key_type == ALPHANUMERIC)
-    {
-        return; // UNIMPLEMENTED
-    }
+    int current_text_line = display_info->first_text_line + display_info->cursor_y;
 
     switch (input_key.key_type)
     {
+        case ALPHANUMERIC:
+        {
+            push_character(text, current_text_line, display_info->cursor_x, (char)input_key.value);
+            display_info->cursor_x++;
+            break;
+        }
         case ENTER:
         {
-            int current_text_line = display_info->first_text_line + display_info->cursor_y;
-            int line_split_position = display_info->cursor_x;
-
-            split_lines(text, current_text_line, line_split_position);
+            split_lines(text, current_text_line, display_info->cursor_x);
             display_info->cursor_y++;
+            display_info->cursor_x = 0;
+            break;
+        }
+        case BACKSPACE:
+        {
+            int next_cursor_x, next_cursor_y;
+
+            if (display_info->cursor_x > 0) // stay on the current line
+            {
+                next_cursor_x = display_info->cursor_x - 1;
+                next_cursor_y = display_info->cursor_y;
+            }
+            else    // Current line to be deleted
+            {
+                if (current_text_line > 0)
+                {
+                    char* previous_line = text->lines[current_text_line - 1];
+                    next_cursor_x = strlen(previous_line);
+                    next_cursor_y = display_info->cursor_y - 1;
+                }
+                else // We are on the beginning of the text. Don't change.
+                {
+                    next_cursor_x = display_info->cursor_x;
+                    next_cursor_y = display_info->cursor_y;
+                }
+
+                // if (display_info->first_text_line + display_info->text_height - 1 >= text->line_count - 1)
+                // {
+                //     int line_to_clear = text->line_count % display_info->text_height - 1;
+                //     clear_line(display_info, line_to_clear);
+                // }
+                clear_screen();
+            }
+            delete_character(text, current_text_line, display_info->cursor_x - 1);
+   
+            display_info->cursor_x = next_cursor_x;
+            display_info->cursor_y = next_cursor_y;
+
             break;
         }
         default:
@@ -131,11 +169,16 @@ void update_view(const Text* text, Display_info* display_info, Key_code input_ke
             break;
     }
 
+    if (display_info->cursor_x < 0)
+    {
+        display_info->cursor_x = 0;
+    }
+
     if (display_info->cursor_x >= current_text_line_size)
         display_info->cursor_x = current_text_line_size;
 
-    if (display_info->cursor_y == text->line_count)
-        display_info->cursor_y = text->line_count - 1;
+    if (current_text_line == text->line_count)
+        display_info->cursor_y--;
 
     if (display_info->cursor_y == display_info->text_height)
     {
@@ -196,7 +239,6 @@ int main(int argc, char** argv)
     }
 
     free_text(text);
-
     console_cleanup();
     return 0;
 }

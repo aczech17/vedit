@@ -35,8 +35,9 @@ static void write_line_to_console(char* line, int line_size, int screen_line)
     #endif
 }
 
-static void print_line(const char* line, int line_size, int screen_width, int cursor_x, int screen_line)
+static void print_line(const char* line, int screen_width, int cursor_x, int screen_line)
 {
+    int line_size = strlen(line);
     char* buffer = malloc(screen_width + 1);
     memset(buffer, ' ', screen_width);
     buffer[screen_width] = 0;
@@ -61,13 +62,24 @@ void display_text(const Text* text, const Display_info* info)
     for (int screen_line = 0; screen_line < line_count; ++screen_line)
     {
         int text_line_number = screen_line + info->first_text_line;
+        if (text_line_number >= text->line_count)
+            break;
+            
         char* line = text->lines[text_line_number];
-        int line_size = strlen(text->lines[text_line_number]);
-
-        print_line(line, line_size, screen_width, info->cursor_x, screen_line);
+        print_line(line, screen_width, info->cursor_x, screen_line);
     }
 
     set_cursor_position(info->cursor_x % info->screen_width, info->cursor_y);
+}
+
+void clear_line(const Display_info* display_info, int screen_line)
+{
+    char* empty_line = malloc(display_info->screen_width + 1);
+    memset(empty_line, ' ', display_info->screen_width);
+    empty_line[display_info->screen_width] = 0;
+
+    print_line(empty_line, display_info->screen_width, 0, screen_line);
+    free(empty_line);
 }
 
 void display_log(const Text* text, const Display_info* display_info)
@@ -77,7 +89,7 @@ void display_log(const Text* text, const Display_info* display_info)
     log[display_info->screen_width] = 0;
 
     int selected_text_line = display_info->first_text_line + display_info->cursor_y;
-    sprintf(log, "%d, %d \t %d lines", display_info->cursor_x, selected_text_line, text->line_count);
+    sprintf(log, "%d, %d \t %d lines \t from %d", display_info->cursor_x, selected_text_line, text->line_count, display_info->first_text_line);
     write_line_to_console(log, display_info->screen_width, display_info->text_height);
 
     memset(log, ' ', display_info->screen_width);
