@@ -8,19 +8,20 @@
 
 int main(int argc, char** argv)
 {
-    console_setup();   
-    View view = get_view();
-    
     if (argc < 2)
     {
         fprintf(stderr, "Filename missing.\n");
         return 1;
     }
 
+    console_setup();   
+    View view = get_view();
+    
     char* filename = argv[1];
     FILE* file = fopen(filename, "rb");
     if (file == NULL)
     {
+        console_cleanup();
         fprintf(stderr, "Cannot open the file.\n");
         return 2;
     }
@@ -30,6 +31,7 @@ int main(int argc, char** argv)
 
     if (text == NULL)
     {
+        console_cleanup();
         fprintf(stderr, "Could not parse the file.\n");
         return 3;
     }
@@ -43,6 +45,7 @@ int main(int argc, char** argv)
 
         update_text(text, &view, input_key);
         update_view(text, &view, input_key);
+        
         display_text(text, &view);
         display_log(text, &view);
     }
