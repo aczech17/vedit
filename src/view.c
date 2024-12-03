@@ -1,4 +1,4 @@
-#include "display_info.h"
+#include "view.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -8,7 +8,7 @@
 #include <stdio.h>
 #endif
 
-Display_info get_display_info()
+View get_view()
 {
     int screen_width, screen_height;
 
@@ -37,7 +37,7 @@ Display_info get_display_info()
 
     const int log_height = 2;
 
-    Display_info info = 
+    View view =
     {
         .screen_width = screen_width,
         .text_height = screen_height - log_height,
@@ -47,5 +47,5 @@ Display_info get_display_info()
         .cursor_y = 0,
     };
     
-    return info;
+    return view;
 }

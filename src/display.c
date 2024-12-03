@@ -1,5 +1,5 @@
 #include "display.h"
-#include "display_info.h"
+#include "view.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,47 +54,47 @@ static void print_line(const char* line, int screen_width, int cursor_x, int scr
     free(buffer);
 }
 
-void display_text(const Text* text, const Display_info* info)
+void display_text(const Text* text, const View* view)
 {
-    int line_count = text->line_count < info->text_height ? text->line_count : info->text_height;
-    int screen_width = info->screen_width;
+    int line_count = text->line_count < view->text_height ? text->line_count : view->text_height;
+    int screen_width = view->screen_width;
 
     for (int screen_line = 0; screen_line < line_count; ++screen_line)
     {
-        int text_line_number = screen_line + info->first_text_line;
+        int text_line_number = screen_line + view->first_text_line;
         if (text_line_number >= text->line_count)
             break;
             
         char* line = text->lines[text_line_number];
-        print_line(line, screen_width, info->cursor_x, screen_line);
+        print_line(line, screen_width, view->cursor_x, screen_line);
     }
 
-    set_cursor_position(info->cursor_x % info->screen_width, info->cursor_y);
+    set_cursor_position(view->cursor_x % view->screen_width, view->cursor_y);
 }
 
-void clear_line(const Display_info* display_info, int screen_line)
+void clear_line(const View* view, int screen_line)
 {
-    char* empty_line = malloc(display_info->screen_width + 1);
-    memset(empty_line, ' ', display_info->screen_width);
-    empty_line[display_info->screen_width] = 0;
+    char* empty_line = malloc(view->screen_width + 1);
+    memset(empty_line, ' ', view->screen_width);
+    empty_line[view->screen_width] = 0;
 
-    print_line(empty_line, display_info->screen_width, 0, screen_line);
+    print_line(empty_line, view->screen_width, 0, screen_line);
     free(empty_line);
 }
 
-void display_log(const Text* text, const Display_info* display_info)
+void display_log(const Text* text, const View* view)
 {
-    char* log = malloc(display_info->screen_width + 1);
-    memset(log, ' ', display_info->screen_width);
-    log[display_info->screen_width] = 0;
+    char* log = malloc(view->screen_width + 1);
+    memset(log, ' ', view->screen_width);
+    log[view->screen_width] = 0;
 
-    int selected_text_line = display_info->first_text_line + display_info->cursor_y;
-    sprintf(log, "%d, %d \t %d lines \t from %d", display_info->cursor_x, selected_text_line, text->line_count, display_info->first_text_line);
-    write_line_to_console(log, display_info->screen_width, display_info->text_height);
+    int selected_text_line = view->first_text_line + view->cursor_y;
+    sprintf(log, "%d, %d \t %d lines \t from %d", view->cursor_x, selected_text_line, text->line_count, view->first_text_line);
+    write_line_to_console(log, view->screen_width, view->text_height);
 
-    memset(log, ' ', display_info->screen_width);
-    sprintf(log, "cursor: %d, %d", display_info->cursor_x, display_info->cursor_y);
-    write_line_to_console(log, display_info->screen_width, display_info->text_height + 1);
+    memset(log, ' ', view->screen_width);
+    sprintf(log, "cursor: %d, %d", view->cursor_x, view->cursor_y);
+    write_line_to_console(log, view->screen_width, view->text_height + 1);
 
     free(log);
 }

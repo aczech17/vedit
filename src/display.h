@@ -2,9 +2,10 @@
 #define DISPLAY_H
 
 #include "text.h"
-#include "display_info.h"
+#include "view.h"
 
-void display_text(const Text*, const Display_info*);
-void clear_line(const Display_info* display_info, int screen_line);
-void display_log(const Text*, const Display_info*);
+void display_text(const Text*, const View*);
+void clear_line(const View* view, int screen_line);
+void display_log(const Text*, const View*);
+
 #endif // DISPLAY_H

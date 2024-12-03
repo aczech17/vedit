@@ -2,7 +2,7 @@
 #define INPUT_H
 
 #include "text.h"
-#include "display_info.h"
+// #include "display_info.h"
 
 typedef enum
 {

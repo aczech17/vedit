@@ -1,97 +1,42 @@
-#ifdef _WIN32
-#include <windows.h>
-#elif __linux__
-#include <termios.h>
-#include <unistd.h>
-#else
-#error "Unsupported OS."
-#endif
+
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "text.h"
-#include "display_info.h"
+#include "view.h"
 #include "display.h"
 #include "input.h"
+#include "console_utils.h"
 
 
-void console_setup()
+void update_text(Text* text, View* view, Key_code input_key)
 {
-    #ifdef _WIN32
-        SetConsoleOutputCP(CP_UTF8);
-        DWORD prev_mode;
-        HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
-        GetConsoleMode(hInput, &prev_mode);
-        SetConsoleMode(hInput, prev_mode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
-    #elif __linux__
-        struct termios old_tio, new_tio;
-
-        tcgetattr(STDIN_FILENO, &old_tio);
-
-        new_tio = old_tio;
-        new_tio.c_lflag &= ~(ICANON | ECHO);        // Disable buffering and echo.
-        new_tio.c_cc[VMIN] = 1;                     // Waiting for 1 character (non-blocking).
-        new_tio.c_cc[VTIME] = 0;                    // Set time for waiting for a character.
-
-        tcsetattr(STDIN_FILENO, TCSANOW, &new_tio); // Apply new settings.
-    #else
-        #error "Terminal configuration for this OS is not implemented."
-    #endif
-}
-
-void console_cleanup()
-{
-    #ifdef _WIN32
-        system("cls");
-    #elif __linux__
-        // Restore old terminal settings.
-        struct termios old_tio;
-        tcgetattr(STDIN_FILENO, &old_tio);
-
-        old_tio.c_lflag |= (ICANON | ECHO);   // Restore buffering and echo.
-        tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
-
-        system("clear");
-    #endif
-}
-
-void clear_screen()
-{
-    #ifdef _WIN32
-        system("cls");
-    #elif __linux__
-        system("clear");
-    #endif
-}
-
-void update_text(Text* text, Display_info* display_info, Key_code input_key)
-{
-    int current_text_line = display_info->first_text_line + display_info->cursor_y;
+    int current_text_line = view->first_text_line + view->cursor_y;
 
     switch (input_key.key_type)
     {
         case ALPHANUMERIC:
         {
-            push_character(text, current_text_line, display_info->cursor_x, (char)input_key.value);
-            display_info->cursor_x++;
+            push_character(text, current_text_line, view->cursor_x, (char)input_key.value);
+            view->cursor_x++;
             break;
         }
         case ENTER:
         {
-            split_lines(text, current_text_line, display_info->cursor_x);
-            display_info->cursor_y++;
-            display_info->cursor_x = 0;
+            split_lines(text, current_text_line, view->cursor_x);
+            view->cursor_y++;
+            view->cursor_x = 0;
             break;
         }
         case BACKSPACE:
         {
             int next_cursor_x, next_cursor_y;
 
-            if (display_info->cursor_x > 0) // stay on the current line
+            if (view->cursor_x > 0) // stay on the current line
             {
-                next_cursor_x = display_info->cursor_x - 1;
-                next_cursor_y = display_info->cursor_y;
+                next_cursor_x = view->cursor_x - 1;
+                next_cursor_y = view->cursor_y;
             }
             else    // Current line to be deleted
             {
@@ -99,25 +44,25 @@ void update_text(Text* text, Display_info* display_info, Key_code input_key)
                 {
                     char* previous_line = text->lines[current_text_line - 1];
                     next_cursor_x = strlen(previous_line);
-                    next_cursor_y = display_info->cursor_y - 1;
+                    next_cursor_y = view->cursor_y - 1;
                 }
                 else // We are on the beginning of the text. Don't change.
                 {
-                    next_cursor_x = display_info->cursor_x;
-                    next_cursor_y = display_info->cursor_y;
+                    next_cursor_x = view->cursor_x;
+                    next_cursor_y = view->cursor_y;
                 }
 
-                // if (display_info->first_text_line + display_info->text_height - 1 >= text->line_count - 1)
+                // if (view->first_text_line + view->text_height - 1 >= text->line_count - 1)
                 // {
-                //     int line_to_clear = text->line_count % display_info->text_height - 1;
-                //     clear_line(display_info, line_to_clear);
+                //     int line_to_clear = text->line_count % view->text_height - 1;
+                //     clear_line(view, line_to_clear);
                 // }
                 clear_screen();
             }
-            delete_character(text, current_text_line, display_info->cursor_x - 1);
+            delete_character(text, current_text_line, view->cursor_x - 1);
    
-            display_info->cursor_x = next_cursor_x;
-            display_info->cursor_y = next_cursor_y;
+            view->cursor_x = next_cursor_x;
+            view->cursor_y = next_cursor_y;
 
             break;
         }
@@ -126,9 +71,9 @@ void update_text(Text* text, Display_info* display_info, Key_code input_key)
     }
 }
 
-void update_view(const Text* text, Display_info* display_info, Key_code input_key)
+void update_view(const Text* text, View* view, Key_code input_key)
 {
-    int current_text_line = display_info->first_text_line + display_info->cursor_y;
+    int current_text_line = view->first_text_line + view->cursor_y;
     int current_text_line_size = strlen(text->lines[current_text_line]);
 
     switch (input_key.key_type)
@@ -137,70 +82,70 @@ void update_view(const Text* text, Display_info* display_info, Key_code input_ke
             return;
         case DOWN:
         {
-            display_info->cursor_y++;
+            view->cursor_y++;
             break;
         }
         case UP:
         {
-            display_info->cursor_y--;
+            view->cursor_y--;
             break;
         }
         case LEFT:
         {
-            display_info->cursor_x--;
+            view->cursor_x--;
             break;
         }
         case RIGHT:
         {
-            display_info->cursor_x++;
+            view->cursor_x++;
             break;
         }
         case HOME:
         {
-            display_info->cursor_x = 0;
+            view->cursor_x = 0;
             break;
         }
         case END:
         {
-            display_info->cursor_x = current_text_line_size;
+            view->cursor_x = current_text_line_size;
             break;
         }
         default:
             break;
     }
 
-    if (display_info->cursor_x < 0)
+    if (view->cursor_x < 0)
     {
-        display_info->cursor_x = 0;
+        view->cursor_x = 0;
     }
 
-    if (display_info->cursor_x >= current_text_line_size)
-        display_info->cursor_x = current_text_line_size;
+    if (view->cursor_x >= current_text_line_size)
+        view->cursor_x = current_text_line_size;
 
     if (current_text_line == text->line_count)
-        display_info->cursor_y--;
+        view->cursor_y--;
 
-    if (display_info->cursor_y == display_info->text_height)
+    if (view->cursor_y == view->text_height)
     {
-        int new_last_line = display_info->first_text_line + display_info->text_height - 1;
+        int new_last_line = view->first_text_line + view->text_height - 1;
         if (new_last_line < text->line_count - 1)
-            display_info->first_text_line++;
-        display_info->cursor_y--;
+            view->first_text_line++;
+        view->cursor_y--;
     }
 
-    if (display_info->cursor_y < 0)
+    if (view->cursor_y < 0)
     {
-        if (display_info->first_text_line > 0)
-            display_info->first_text_line--;
+        if (view->first_text_line > 0)
+            view->first_text_line--;
 
-        display_info->cursor_y = 0;
+        view->cursor_y = 0;
     }
 }
 
 int main(int argc, char** argv)
 {
     console_setup();   
-    Display_info display_info = get_display_info();
+    View view = get_view();
     
     if (argc < 2)
     {
@@ -232,10 +177,10 @@ int main(int argc, char** argv)
         if (input_key.key_type == ESCAPE)
             break;
 
-        update_text(text, &display_info, input_key);
-        update_view(text, &display_info, input_key);
-        display_text(text, &display_info);
-        display_log(text, &display_info);
+        update_text(text, &view, input_key);
+        update_view(text, &view, input_key);
+        display_text(text, &view);
+        display_log(text, &view);
     }
 
     free_text(text);
