@@ -56,6 +56,8 @@ int main(int argc, char** argv)
         
         display_text(text, &view);
         display_log(text, &view);
+
+        set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
     }
 
     deallocate_text(text);

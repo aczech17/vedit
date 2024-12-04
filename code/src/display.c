@@ -9,7 +9,7 @@
 #include <stdio.h>
 #endif
 
-static void set_cursor_position(int x, int y)
+void set_cursor_position(int x, int y)
 {
     #ifdef _WIN32
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), (COORD){x, y});
@@ -68,8 +68,6 @@ void display_text(const Text* text, const View* view)
         char* line = text->lines[text_line_number];
         print_line(line, screen_width, view->cursor_x, screen_line);
     }
-
-    set_cursor_position(view->cursor_x % view->screen_width, view->cursor_y);
 }
 
 void clear_line(const View* view, int screen_line)
