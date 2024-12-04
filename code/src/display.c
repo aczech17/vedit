@@ -14,6 +14,7 @@ void set_cursor_position(int x, int y)
     #ifdef _WIN32
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), (COORD){x, y});
     #elif __linux__
+        printf("\033[?25h"); // Set the cursor on.
         printf("\033[%d;%dH", y + 1, x + 1); // ANSI escape sequence is 1-indexed.
         fflush(stdout);
     #else
@@ -56,6 +57,11 @@ static void print_line(const char* line, int screen_width, int cursor_x, int scr
 
 void display_text(const Text* text, const View* view)
 {
+    #ifdef __linux__
+        printf("\033[?25l"); // Hide the cursor not to blink randomly while printing the text.
+        fflush(stdout);
+    #endif
+
     int line_count = text->line_count < view->text_height ? text->line_count : view->text_height;
     int screen_width = view->screen_width;
 
