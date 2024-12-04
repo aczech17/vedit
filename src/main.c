@@ -58,7 +58,7 @@ int main(int argc, char** argv)
         display_log(text, &view);
     }
 
-    free_text(text);
+    deallocate_text(text);
     console_cleanup();
     return 0;
 }

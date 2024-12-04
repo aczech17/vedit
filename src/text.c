@@ -9,7 +9,7 @@ typedef struct
     int size;
 }Endline;
 
-#define PUSH_LINE(line, line_size) if (!push_line(text, line, line_size)) {free_text(text); return NULL;}
+#define PUSH_LINE(line, line_size) if (!push_line(text, line, line_size)) {deallocate_text(text); return NULL;}
 
 static char* get_file_content(FILE* file)
 {
@@ -295,7 +295,7 @@ void join_lines(Text* text, int upper_line_number)
     text->line_count--;
 }
 
-void free_text(Text* text)
+void deallocate_text(Text* text)
 {
     if (text == NULL)
         return;

@@ -17,6 +17,6 @@ void delete_character(Text* text, int line_number, int char_position);
 void delete_line(Text* text, int line_number);
 void split_lines(Text* text, int line_number, int split_position);
 void join_lines(Text* text, int upper_line_number);
-void free_text(Text*);
+void deallocate_text(Text*);
 
 #endif // TEXT_H
