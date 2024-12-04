@@ -1,5 +1,5 @@
-#include "display.h"
-#include "view.h"
+#include "../headers/display.h"
+#include "../headers/view.h"
 #include <stdlib.h>
 #include <string.h>
 

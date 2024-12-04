@@ -7,7 +7,7 @@
 #error "Unsupported OS."
 #endif
 
-#include "console_utils.h"
+#include "../headers/console_utils.h"
 #include <stdlib.h>
 
 void console_setup()

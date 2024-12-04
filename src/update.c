@@ -1,6 +1,6 @@
+#include "../headers/update.h"
 #include <string.h>
-#include "console_utils.h"
-#include "update.h"
+#include "../headers/console_utils.h"
 
 void update_text(Text* text, View* view, Key_code input_key)
 {

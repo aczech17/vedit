@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include "console_utils.h"
-#include "display.h"
-#include "input.h"
-#include "text.h"
-#include "update.h"
-#include "view.h"
+#include "../headers/console_utils.h"
+#include "../headers/display.h"
+#include "../headers/input.h"
+#include "../headers/text.h"
+#include "../headers/update.h"
+#include "../headers/view.h"
 
 int main(int argc, char** argv)
 {
