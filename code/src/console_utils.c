@@ -46,6 +46,7 @@ void console_cleanup()
         old_tio.c_lflag |= (ICANON | ECHO);   // Restore buffering and echo.
         tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
 
+        printf("\033[?25h"); // Set the cursor on.
         system("clear");
     #endif
 }
