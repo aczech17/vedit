@@ -102,9 +102,10 @@ void update_view(const Text* text, View* view, Key_code input_key)
     }
 
     if (view->cursor_x < 0)
-    {
         view->cursor_x = 0;
-    }
+
+    if (view->cursor_y >= text->line_count)
+        view->cursor_y--;
 
     if (view->cursor_x >= current_text_line_size)
         view->cursor_x = current_text_line_size;
