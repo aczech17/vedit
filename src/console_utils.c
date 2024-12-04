@@ -8,6 +8,7 @@
 #endif
 
 #include "console_utils.h"
+#include <stdlib.h>
 
 void console_setup()
 {
