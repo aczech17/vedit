@@ -3,6 +3,8 @@
 #ifdef __linux__
 #include <string.h>
 #include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #endif
 
 static Key_code special_key(Key_type key_type)
@@ -99,11 +101,26 @@ Key_code read_input()
     if (bytes_read <= 0)
         return no_key();
 
-    if (buffer[0] == '\033') // Escape sequence
+    if (buffer[0] == '\033') // Escape sequence or Escape key
     {
-        if (read(STDIN_FILENO, buffer + 1, 2) == 2 && buffer[1] == '[')
+        // Peek to check if it's a standalone ESC key or a sequence
+        struct timeval timeout = {0, 10000}; // 10ms timeout
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
+
+        if (select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout) > 0)
         {
-            return convert_key_code_linux(buffer + 1);
+            // There's more data, read it
+            if (read(STDIN_FILENO, buffer + 1, 2) == 2 && buffer[1] == '[')
+            {
+                return convert_key_code_linux(buffer + 1);
+            }
+        }
+        else
+        {
+            // No more data, it's a standalone ESC key
+            return special_key(ESCAPE);
         }
 
         return no_key();
