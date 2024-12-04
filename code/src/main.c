@@ -47,17 +47,16 @@ int main(int argc, char** argv)
     clear_screen();
     for (;;)
     {
+        display_text(text, &view);
+        display_log(text, &view);
+        set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
+
         Key_code input_key = read_input();
         if (input_key.key_type == ESCAPE)
             break;
 
         update_text(text, &view, input_key);
         update_view(text, &view, input_key);
-        
-        display_text(text, &view);
-        display_log(text, &view);
-
-        set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
     }
 
     deallocate_text(text);
