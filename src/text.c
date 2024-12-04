@@ -116,10 +116,8 @@ static Endline find_endline(const char* line)
     return endline;
 }
 
-Text* get_text(FILE* file)
+static Text* new_text()
 {
-    char* file_content = get_file_content(file);
-
     const int initial_capacity = 25;
 
     Text* text = malloc(sizeof(Text));
@@ -135,6 +133,25 @@ Text* get_text(FILE* file)
         free(text);
         return NULL;
     }
+
+    return text;
+}
+
+Text* empty_text()
+{
+    Text* text = new_text();
+    if (text == NULL)
+        return NULL;
+        
+    PUSH_LINE("", 0); // only empty line
+
+    return text;
+}
+
+Text* get_text_from_file(FILE* file)
+{
+    char* file_content = get_file_content(file);
+    Text* text = new_text();
 
 
     char* line_start = (char*)file_content;

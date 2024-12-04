@@ -10,7 +10,8 @@ typedef struct
     int capacity;
 }Text;
 
-Text* get_text(FILE*);
+Text* empty_text();
+Text* get_text_from_file(FILE*);
 void push_character(Text* text, int line_number, int char_position, char value);
 void delete_character(Text* text, int line_number, int char_position);
 void delete_line(Text* text, int line_number);
