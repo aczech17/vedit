@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include "../headers/console_utils.h"
 #include "../headers/display.h"
@@ -8,6 +9,8 @@
 
 int main(int argc, char** argv)
 {
+    int exit_status = 0;
+
     console_setup();   
     View view = get_view();
 
@@ -44,22 +47,51 @@ int main(int argc, char** argv)
         }
     }
 
+    Mode mode = WATCH;
+
     clear_screen();
-    for (;;)
+    bool running = true;
+    while (running)
     {
         display_text(text, &view);
-        display_log(text, &view);
+        display_log(text, &view, mode);
         set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
 
-        Key_code input_key = read_input();
-        if (input_key.key_type == ESCAPE)
-            break;
+        Key_code input_key = read_input();  // blocking
 
-        update_text(text, &view, input_key);
+        switch (mode)
+        {
+            case WATCH:
+            {
+                if (input_key.value == 'I')
+                    mode = EDIT;
+                if (input_key.key_type == ESCAPE)
+                    running = false;
+                break;
+            }
+            case EDIT:
+            {
+                if (input_key.key_type == ESCAPE)
+                    mode = WATCH;
+
+                update_text(text, &view, input_key);
+                break;
+            }
+        }
+        
         update_view(text, &view, input_key);
+    }
+
+    if (text->modified)
+    {
+        if (!save_text(text, "dupa.txt"))
+        {
+            fprintf(stderr, "Could not save the file.\n");
+            exit_status = 4;
+        }
     }
 
     deallocate_text(text);
     console_cleanup();
-    return 0;
+    return exit_status;
 }

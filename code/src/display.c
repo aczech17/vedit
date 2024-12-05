@@ -86,14 +86,15 @@ void clear_line(const View* view, int screen_line)
     free(empty_line);
 }
 
-void display_log(const Text* text, const View* view)
+void display_log(const Text* text, const View* view, const Mode mode)
 {
     char* log = malloc(view->screen_width + 1);
     memset(log, ' ', view->screen_width);
     log[view->screen_width] = 0;
 
     int selected_text_line = view->first_text_line + view->cursor_y;
-    sprintf(log, "%d, %d \t %d lines \t from %d", view->cursor_x, selected_text_line, text->line_count, view->first_text_line);
+    sprintf(log, "%d, %d \t %d lines \t from %d %s",
+            view->cursor_x, selected_text_line, text->line_count, view->first_text_line, mode_to_str(mode));
     write_line_to_console(log, view->screen_width, view->text_height);
 
     memset(log, ' ', view->screen_width);

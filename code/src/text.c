@@ -134,6 +134,7 @@ static Text* new_text()
         return NULL;
     }
 
+    text->modified = false;
     return text;
 }
 
@@ -142,7 +143,7 @@ Text* empty_text()
     Text* text = new_text();
     if (text == NULL)
         return NULL;
-        
+    
     PUSH_LINE("", 0); // only empty line
 
     return text;
@@ -173,7 +174,9 @@ Text* get_text_from_file(FILE* file)
         line_start = endline.start + endline.size;
     }
 
-    PUSH_LINE("", 0)   // empty line at the end
+
+    // empty line at the end
+    PUSH_LINE("", 0);
 
     free(file_content);
     return text;
@@ -293,6 +296,22 @@ void join_lines(Text* text, int upper_line_number)
         text->lines[i] = text->lines[i + 1];
     
     text->line_count--;
+}
+
+bool save_text(const Text* text, const char* filename)
+{
+    FILE* output_file = fopen(filename, "w");
+    if (output_file == NULL)
+        return false;
+
+    for (int line_number = 0; line_number < text->line_count; ++line_number)
+    {
+        char* line = text->lines[line_number];
+        fprintf(output_file, "%s\n", line);
+    }
+
+    fclose(output_file);
+    return true;
 }
 
 void deallocate_text(Text* text)

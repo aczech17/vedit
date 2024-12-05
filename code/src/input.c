@@ -141,3 +141,16 @@ Key_code read_input()
 }
 
 #endif
+
+char* mode_to_str(const Mode mode)
+{
+    switch (mode)
+    {
+        case WATCH:
+            return "WATCH";
+        case EDIT:
+            return "EDIT";
+        default:
+            return "MODE UNKNOWN";
+    }
+}

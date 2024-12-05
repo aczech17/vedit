@@ -6,6 +6,7 @@ void update_text(Text* text, View* view, Key_code input_key)
 {
     int current_text_line = view->first_text_line + view->cursor_y;
 
+    bool modified_now = true;
     switch (input_key.key_type)
     {
         case ALPHANUMERIC:
@@ -54,8 +55,13 @@ void update_text(Text* text, View* view, Key_code input_key)
             break;
         }
         default:
+            modified_now = false;
             break;
     }
+
+    // If it wasn't modified earlier, it's modified now.
+    if (!text->modified)
+        text->modified = modified_now;
 }
 
 void update_view(const Text* text, View* view, Key_code input_key)

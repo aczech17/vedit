@@ -19,6 +19,12 @@ typedef struct
     int value;
 }Key_code;
 
+typedef enum
+{
+    WATCH, EDIT,
+}Mode;
+
 Key_code read_input();
+char* mode_to_str(const Mode mode);
 
 #endif // INPUT_H
