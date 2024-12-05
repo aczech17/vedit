@@ -3,6 +3,7 @@
 #elif __linux__
 #include <termios.h>
 #include <unistd.h>
+#include <stdio.h>
 #else
 #error "Unsupported OS."
 #endif
