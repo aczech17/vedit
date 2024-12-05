@@ -304,12 +304,6 @@ bool save_text(const Text* text, const char* filename)
     if (output_file == NULL)
         return false;
 
-    if (text->line_count == 1 && strlen(text->lines[0]) == 0) // empty file
-    {
-        fclose(output_file);
-        return true;
-    }
-
     for (int line_number = 0; line_number < text->line_count - 1; ++line_number)
     {
         char* line = text->lines[line_number];
@@ -317,11 +311,8 @@ bool save_text(const Text* text, const char* filename)
     }
 
     char* last_line = text->lines[text->line_count - 1];
-
-    if (strlen(last_line) != 0)   // The last line is not empty, so there's no empty line at the end. Write two last lines.
-    {
+    if (strlen(last_line) != 0)   // The last line is not empty, so there's no empty line at the end.
         fprintf(output_file, "%s", last_line);
-    }
 
     fclose(output_file);
     return true;
