@@ -1,11 +1,17 @@
 #include "../headers/input.h"
 
-#ifdef __linux__
-#include <string.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#endif
+char* mode_to_str(const Mode mode)
+{
+    switch (mode)
+    {
+        case WATCH:
+            return "WATCH";
+        case EDIT:
+            return "EDIT";
+        default:
+            return "MODE UNKNOWN";
+    }
+}
 
 static Key_code special_key(Key_type key_type)
 {
@@ -25,7 +31,7 @@ static Key_code alphanumeric(int value)
 #ifdef _WIN32
 #include <windows.h>
 
-static Key_code convert_key_code_windows(int winapi_input_key)
+static Key_code convert_special_key_code_windows(int winapi_input_key)
 {
     switch (winapi_input_key)
     {
@@ -45,14 +51,10 @@ static Key_code convert_key_code_windows(int winapi_input_key)
             return special_key(ENTER);
         case VK_BACK:
             return special_key(BACKSPACE);
-        case VK_ESCAPE: // Obsługuje ESCAPE
+        case VK_ESCAPE:
             return special_key(ESCAPE);
         default:
-        {
-            if (isalnum(winapi_input_key))
-                return alphanumeric(winapi_input_key);
             return no_key();
-        }
     }
 }
 
@@ -60,20 +62,33 @@ Key_code read_input()
 {
     static INPUT_RECORD input_record;
     static DWORD events;
-
     ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &input_record, 1, &events);
+
+    bool is_shift_pressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    bool is_caps_lock_on = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
     
     if (input_record.EventType == KEY_EVENT && input_record.Event.KeyEvent.bKeyDown)
     {
-        int winapi_input_key = input_record.Event.KeyEvent.wVirtualKeyCode;
-        Key_code key_code = convert_key_code_windows(winapi_input_key);
-        return key_code;
+        int input_key = input_record.Event.KeyEvent.wVirtualKeyCode;
+        bool is_alphanumeric = isalnum(input_key) || input_key == ' '; // Space is considered alphanumeric.
+        if (!is_alphanumeric)
+            return convert_special_key_code_windows(input_key);
+
+        bool uppercase = is_shift_pressed ^ is_caps_lock_on;
+        if (!uppercase)
+            input_key = tolower(input_key);
+            
+        return alphanumeric(input_key);
     }
 
     return no_key();
 }
 
 #elif __linux__
+#include <string.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 static Key_code convert_key_code_linux(const char* sequence)
 {
@@ -141,16 +156,3 @@ Key_code read_input()
 }
 
 #endif
-
-char* mode_to_str(const Mode mode)
-{
-    switch (mode)
-    {
-        case WATCH:
-            return "WATCH";
-        case EDIT:
-            return "EDIT";
-        default:
-            return "MODE UNKNOWN";
-    }
-}

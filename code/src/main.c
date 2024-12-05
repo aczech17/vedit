@@ -63,7 +63,7 @@ int main(int argc, char** argv)
         {
             case WATCH:
             {
-                if (input_key.value == 'I')
+                if (input_key.value == 'I' || input_key.value == 'i')
                     mode = EDIT;
                 if (input_key.key_type == ESCAPE)
                     running = false;
