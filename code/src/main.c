@@ -82,7 +82,7 @@ int main(int argc, char** argv)
         update_view(text, &view, input_key);
     }
 
-    // if (text->modified)
+    if (text->modified)
     {
         if (!save_text(text, "dupa.txt"))
         {
