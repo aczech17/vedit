@@ -86,22 +86,22 @@ static Endline find_endline(const char* line)
     char* start;
     int size;
     
-    if (cr_pos && lf_pos)
+    if (cr_pos && lf_pos)       // CRLF
     {
         start = cr_pos;
         size = 2;
     }
-    if (cr_pos && !lf_pos)
+    else if (cr_pos && !lf_pos) // CR
     {
         start = cr_pos;
         size = 1;
     }
-    if (!cr_pos && lf_pos)
+    else if (!cr_pos && lf_pos) // LF
     {
         start = lf_pos;
         size = 1;
     }
-    if (!cr_pos && !lf_pos)
+    else                        // no endline
     {
         start = NULL;
         size = 0;

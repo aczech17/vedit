@@ -3,7 +3,7 @@ SRC = code/src/main.c code/src/update.c code/src/text.c code/src/display.c code/
 default:	vedit
 
 vedit:	$(SRC)
-	gcc -Wall -Wextra $(SRC) -o vedit
+	gcc -Wall -Wextra -O3 $(SRC) -o vedit
 english:	vedit
 	./vedit test/english.txt
 empty:	vedit
