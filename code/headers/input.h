@@ -23,7 +23,7 @@ typedef struct
 
 typedef enum
 {
-    WATCH, EDIT, SAVING, SAVE_AND_QUIT, DISCARD_AND_QUIT,
+    WATCH, EDIT, SAVING, SAVE, QUIT,
 }Mode;
 
 Key_code read_input();

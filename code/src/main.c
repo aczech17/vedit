@@ -20,7 +20,7 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
                 if (saving_needed)
                     return SAVING;
 
-                return DISCARD_AND_QUIT; // If no saving is needed, just quit without saving.
+                return QUIT; // If no saving is needed, just quit without saving.
             }
             
             break;
@@ -37,9 +37,9 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
             if (input_key.key_type == ESCAPE)
                 return WATCH;
             if (input_key.key_type == ENTER)
-                return SAVE_AND_QUIT;
+                return SAVE;
             if (input_key.key_type == F1)
-                return DISCARD_AND_QUIT;
+                return QUIT;
 
             break;
         }
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     char output_path[1025] = {0};
     char* output_end = output_path;
 
-    while (mode != SAVE_AND_QUIT && mode != DISCARD_AND_QUIT)
+    while (mode != QUIT)
     {
         display_text(text, &view);
         display_log(text, &view, mode, output_path);
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 
                 break;
             }
-            case SAVE_AND_QUIT:
+            case SAVE:
             {
                 bool save_success = save_text(text, output_path);
                 if (!save_success)
@@ -141,11 +141,13 @@ int main(int argc, char** argv)
                     sprintf(exit_message, "Could not save the file %s.", output_path);
                     exit_status = 4;
                 }
+
+                mode = QUIT;
                 break;
             }
-            case DISCARD_AND_QUIT:
+            case QUIT:
             {
-                // Do nothing, just end the main loop.
+                // Do nothing, just end the main loop and quit.
                 break;
             }
         }
