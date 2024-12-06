@@ -88,7 +88,7 @@ void clear_line(const View* view, int screen_line)
 
 void display_log(const Text* text, const View* view, const Mode mode, const char* log_input)
 {
-    if (mode == SAVE)
+    if (mode == SAVING)
     {
         print_line("Write file to:", view->screen_width, 0, view->text_height);
         print_line(log_input, view->screen_width, 0, view->text_height + 1);

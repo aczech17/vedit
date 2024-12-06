@@ -7,13 +7,55 @@
 #include "../headers/update.h"
 #include "../headers/view.h"
 
+Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
+{
+    switch (mode)
+    {
+        case WATCH:
+        {
+            if (input_key.value == 'I' || input_key.value == 'i')
+                return EDIT;
+            if (input_key.key_type == ESCAPE)
+            {
+                if (saving_needed)
+                    return SAVING;
+
+                return DISCARD_AND_QUIT; // If no saving is needed, just quit without saving.
+            }
+            
+            break;
+        }
+        case EDIT:
+        {
+            if (input_key.key_type == ESCAPE)
+                return WATCH;
+
+            break;
+        }
+        case SAVING:
+        {
+            if (input_key.key_type == ESCAPE)
+                return WATCH;
+            if (input_key.key_type == ENTER)
+                return SAVE_AND_QUIT;
+            if (input_key.key_type == F1)
+                return DISCARD_AND_QUIT;
+
+            break;
+        }
+        default:
+            break;
+    }
+
+    return mode; // Otherwise, dont't change anything.
+}
 
 int main(int argc, char** argv)
 {
     int exit_status = 0;
     char exit_message[1025] = {0};
 
-    console_setup();   
+    console_setup();
     View view = get_view();
 
     Text* text;
@@ -52,73 +94,27 @@ int main(int argc, char** argv)
     Mode mode = WATCH;
 
     clear_screen();
-    bool running = true;
     char output_path[1025] = {0};
     char* output_end = output_path;
 
-    while (running)
+    while (mode != SAVE_AND_QUIT && mode != DISCARD_AND_QUIT)
     {
         display_text(text, &view);
         display_log(text, &view, mode, output_path);
         set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
 
-        Key_code input_key = read_input();  // blocking
-
-        // change mode if needed
-        switch (mode)
+        Key_code input_key = read_input(); // blocking
+        Mode new_mode = get_new_mode(mode, input_key, text->modified);
+        if (new_mode != mode)
         {
-            case WATCH:
-            {
-                if (input_key.value == 'I' || input_key.value == 'i')
-                {
-                    mode = EDIT;
-                    continue;
-                }
-                if (input_key.key_type == ESCAPE)
-                {
-                    mode = SAVE;
-                    continue;
-                }
-                break;
-            }
-            case EDIT:
-            {
-                if (input_key.key_type == ESCAPE)
-                {
-                    mode = WATCH;
-                    continue;
-                    break;
-                }
-                break;
-            }
-            case SAVE:
-            {
-                if (input_key.key_type == ESCAPE)
-                {
-                    mode = WATCH;
-                    continue;
-                }
-                if (input_key.key_type == F1)
-                {
-                    running = false;
-                    continue;
-                }
-                if (input_key.key_type == ENTER)
-                {
-                    bool save_success = save_text(text, output_path);
-                    if (!save_success)
-                    {
-                        sprintf(exit_message, "Could not save the file %s.", output_path);
-                        exit_status = 4;
-                    }
-                    running = false;
-                    continue;
-                }
-
-                break;
-            }
+            // If the mode has changed, read the input once again,
+            // so that the last input key, changing the mode, doesn't affect the text.
+            mode = new_mode;
+            continue;
         }
 
+        mode = new_mode;
+    
         switch (mode)
         {
             case WATCH:
@@ -130,15 +126,30 @@ int main(int argc, char** argv)
                 update_text(text, &view, input_key);
                 break;
             }
-            case SAVE:
+            case SAVING:
             {
                 if (input_key.key_type == ALPHANUMERIC)
                     *output_end++ = (char)input_key.value; // Read output path.
-                
+
+                break;
+            }
+            case SAVE_AND_QUIT:
+            {
+                bool save_success = save_text(text, output_path);
+                if (!save_success)
+                {
+                    sprintf(exit_message, "Could not save the file %s.", output_path);
+                    exit_status = 4;
+                }
+                break;
+            }
+            case DISCARD_AND_QUIT:
+            {
+                // Do nothing, just end the main loop.
                 break;
             }
         }
-        
+
         update_view(text, &view, input_key);
     }
 
