@@ -13,7 +13,7 @@ char* mode_to_str(const Mode mode)
     }
 }
 
-static Key_code special_key(Key_type key_type)
+static Key_code functional_key(Key_type key_type)
 {
     return (Key_code){.key_type = key_type, .value = 0};
 }
@@ -31,19 +31,21 @@ static Key_code alphanumeric(int value)
 #ifdef _WIN32
 #include <windows.h>
 
-static Key_code convert_key_code_windows(int winapi_input_key, bool is_shift_pressed)
+static Key_code convert_special_key_code_windows(int winapi_input_key, bool is_shift_pressed)
 {
     switch (winapi_input_key)
     {
-        case VK_UP:          return special_key(UP);
-        case VK_DOWN:        return special_key(DOWN);
-        case VK_LEFT:        return special_key(LEFT);
-        case VK_RIGHT:       return special_key(RIGHT);
-        case VK_HOME:        return special_key(HOME);
-        case VK_END:         return special_key(END);
-        case VK_RETURN:      return special_key(ENTER);
-        case VK_BACK:        return special_key(BACKSPACE);
-        case VK_ESCAPE:      return special_key(ESCAPE);
+        case VK_UP:          return functional_key(UP);
+        case VK_DOWN:        return functional_key(DOWN);
+        case VK_LEFT:        return functional_key(LEFT);
+        case VK_RIGHT:       return functional_key(RIGHT);
+        case VK_HOME:        return functional_key(HOME);
+        case VK_END:         return functional_key(END);
+        case VK_RETURN:      return functional_key(ENTER);
+        case VK_BACK:        return functional_key(BACKSPACE);
+        case VK_ESCAPE:      return functional_key(ESCAPE);
+        case VK_F1:          return functional_key(F1);
+
         case VK_OEM_PERIOD:  return alphanumeric(is_shift_pressed ? '>' : '.');
         case VK_OEM_COMMA:   return alphanumeric(is_shift_pressed ? '<' : ',');
         case VK_OEM_1:       return alphanumeric(is_shift_pressed ? ':' : ';');
@@ -54,9 +56,7 @@ static Key_code convert_key_code_windows(int winapi_input_key, bool is_shift_pre
         case VK_OEM_6:       return alphanumeric(is_shift_pressed ? '}' : ']');
         case VK_OEM_7:       return alphanumeric(is_shift_pressed ? '"' : '\'');
         case VK_OEM_PLUS:    return alphanumeric(is_shift_pressed ? '+' : '=');
-        case VK_OEM_MINUS:   return alphanumeric(is_shift_pressed ? '_' : '-');
-
-        
+        case VK_OEM_MINUS:   return alphanumeric(is_shift_pressed ? '_' : '-');    
         case '1': return alphanumeric(is_shift_pressed ? '!' : '1');
         case '2': return alphanumeric(is_shift_pressed ? '@' : '2');
         case '3': return alphanumeric(is_shift_pressed ? '#' : '3');
@@ -67,6 +67,7 @@ static Key_code convert_key_code_windows(int winapi_input_key, bool is_shift_pre
         case '8': return alphanumeric(is_shift_pressed ? '*' : '8');
         case '9': return alphanumeric(is_shift_pressed ? '(' : '9');
         case '0': return alphanumeric(is_shift_pressed ? ')' : '0');
+        case ' ': return alphanumeric(' ');
 
         default: return no_key();
     }
@@ -85,11 +86,16 @@ Key_code read_input()
     {
         int input_key = input_record.Event.KeyEvent.wVirtualKeyCode;
 
-        // Space is considered alpha. Otherwise it wouldn't be handled correctly.
-        bool is_alpha = isalpha(input_key) || input_key == ' '; 
-        
-        if (!is_alpha)
-            return convert_key_code_windows(input_key, is_shift_pressed);
+        // First check if the key is special, because some special keys may appear as a regular ASCII,
+        // eg. F1 and 'p'.
+        Key_code converted = convert_special_key_code_windows(input_key, is_shift_pressed);
+        if (converted.key_type != NONE)
+            return converted;
+
+        // Now we are sure the key is none of a special.
+
+        if (!isalpha(input_key))    // No special key, no alpha, it's irrelevant.
+            return no_key();
 
         bool uppercase = is_shift_pressed ^ is_caps_lock_on;
         if (!uppercase)

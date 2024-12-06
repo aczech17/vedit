@@ -9,6 +9,8 @@ typedef enum
     HOME, END,
     ENTER, BACKSPACE,
     ESCAPE,
+    F1,
+    
     ALPHANUMERIC,
     NONE
 }Key_type;
@@ -21,7 +23,7 @@ typedef struct
 
 typedef enum
 {
-    WATCH, EDIT,
+    WATCH, EDIT, SAVE,
 }Mode;
 
 Key_code read_input();

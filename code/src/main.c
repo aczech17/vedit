@@ -7,10 +7,53 @@
 #include "../headers/update.h"
 #include "../headers/view.h"
 
+typedef enum
+{
+    SUCCESS, ERROR, CANCEL
+}Saving_status;
+
+Saving_status save(const Text* text, View* view)
+{
+    if (!text->modified)
+        return SUCCESS;
+
+    char output_file_path[100] = {0};
+    char* path_end = output_file_path;
+
+    print_line("Write file to:", view->screen_width, 0, view->text_height);
+    print_line("", view->screen_width, 0, view->text_height + 1);
+    view->cursor_x = 0;
+    set_cursor_position(view->cursor_x, view->text_height + 1);
+
+    Key_code key = {.key_type = NONE};
+    while (key.key_type != ENTER)
+    {
+        key = read_input();
+        if (key.key_type == ESCAPE)
+            return CANCEL;
+        if (key.key_type == F1)
+            return SUCCESS;
+
+        if (key.key_type == ALPHANUMERIC)
+        {
+            *path_end++ = (char)key.value;
+            view->cursor_x++;
+            print_line(output_file_path, view->screen_width, view->cursor_x, view->text_height + 1);
+            set_cursor_position(view->cursor_x, view->text_height + 1);
+        }
+    }
+
+    bool save_success = save_text(text, output_file_path);
+    if (!save_success)
+        return ERROR;
+    
+    return SUCCESS;
+}
+
 int main(int argc, char** argv)
 {
     int exit_status = 0;
-    char exit_message[1024] = {0};
+    char exit_message[1025] = {0};
 
     console_setup();   
     View view = get_view();
@@ -67,7 +110,7 @@ int main(int argc, char** argv)
                 if (input_key.value == 'I' || input_key.value == 'i')
                     mode = EDIT;
                 if (input_key.key_type == ESCAPE)
-                    running = false;
+                    mode = SAVE;
                 break;
             }
             case EDIT:
@@ -78,40 +121,33 @@ int main(int argc, char** argv)
                 update_text(text, &view, input_key);
                 break;
             }
+            case SAVE:
+            {
+                Saving_status saving_status = save(text, &view);
+                switch (saving_status)
+                {
+                    case SUCCESS:
+                    {
+                        running = false;
+                        break;
+                    }
+                    case CANCEL:
+                    {
+                        mode = WATCH;
+                        break;
+                    }
+                    case ERROR:
+                    {
+                        sprintf(exit_message, "Could not save the file.\n");
+                        exit_status = 4;
+                        break;
+                    }
+                }
+                break;
+            }
         }
         
         update_view(text, &view, input_key);
-    }
-
-    char output_file_path[100] = {0};
-    char* path_end = output_file_path;
-
-    if (text->modified)
-    {
-        print_line("Write file to:", view.screen_width, 0, view.text_height);
-        print_line("", view.screen_width, 0, view.text_height + 1);
-        view.cursor_x = 0;
-        set_cursor_position(view.cursor_x, view.text_height + 1);
-
-        Key_code key = {.key_type = NONE};
-        while (key.key_type != ENTER)
-        {
-            key = read_input();
-            if (key.key_type == ALPHANUMERIC)
-            {
-                *path_end++ = (char)key.value;
-                view.cursor_x++;
-                print_line(output_file_path, view.screen_width, view.cursor_x, view.text_height + 1);
-                set_cursor_position(view.cursor_x, view.text_height + 1);
-            }
-        }
-
-        bool save_success = save_text(text, output_file_path);
-        if (!save_success)
-        {
-            sprintf(exit_message, "Could not save the file %s.\n", output_file_path);
-            exit_status = 4;
-        }
     }
 
     deallocate_text(text);
