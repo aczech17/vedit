@@ -53,7 +53,7 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
 int main(int argc, char** argv)
 {
     int exit_status = 0;
-    char exit_message[1025] = {0};
+    char exit_message[2049] = {0};
 
     console_setup();
     View view = get_view();
