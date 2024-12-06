@@ -105,9 +105,9 @@ int main(int argc, char** argv)
 
         Key_code input_key = read_input(); // blocking
         Mode new_mode = get_new_mode(mode, input_key, text->modified);
-        if (new_mode != mode)
+        if (new_mode != mode && (mode == WATCH || mode == EDIT))
         {
-            // If the mode has changed, read the input once again,
+            // If the mode has changed from watch to edit or from edit to wath, then read the input once again,
             // so that the last input key, changing the mode, doesn't affect the text.
             mode = new_mode;
             continue;
