@@ -29,7 +29,7 @@ static void write_line_to_console(char* line, int screen_width, int screen_line)
         WriteConsoleOutputCharacterA(GetStdHandle(STD_OUTPUT_HANDLE), line, screen_width, (COORD){0, screen_line}, &written);
     #elif __linux__
         printf("\033[%d;1H", screen_line + 1); // // ANSI escape sequence is 1-indexed.
-        fwrite(line, 1, line_size, stdout);
+        fwrite(line, 1, screen_width, stdout);
         fflush(stdout);
     #else
         #error "Writing to console for this OS is not implemented."

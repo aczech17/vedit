@@ -10,7 +10,7 @@
 int main(int argc, char** argv)
 {
     int exit_status = 0;
-    char exit_message[100] = {0};
+    char exit_message[1024] = {0};
 
     console_setup();   
     View view = get_view();
