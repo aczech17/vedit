@@ -10,6 +10,7 @@
 int main(int argc, char** argv)
 {
     int exit_status = 0;
+    char exit_message[100] = {0};
 
     console_setup();   
     View view = get_view();
@@ -82,16 +83,42 @@ int main(int argc, char** argv)
         update_view(text, &view, input_key);
     }
 
+    char output_file_path[100] = {0};
+    char* path_end = output_file_path;
+
     if (text->modified)
     {
-        if (!save_text(text, "dupa.txt"))
+        print_line("Write file to:", view.screen_width, 0, view.text_height);
+        print_line("", view.screen_width, 0, view.text_height + 1);
+        view.cursor_x = 0;
+        set_cursor_position(view.cursor_x, view.text_height + 1);
+
+        Key_code key = {.key_type = NONE};
+        while (key.key_type != ENTER)
         {
-            fprintf(stderr, "Could not save the file.\n");
+            key = read_input();
+            if (key.key_type == ALPHANUMERIC)
+            {
+                *path_end++ = (char)key.value;
+                view.cursor_x++;
+                print_line(output_file_path, view.screen_width, view.cursor_x, view.text_height + 1);
+                set_cursor_position(view.cursor_x, view.text_height + 1);
+            }
+        }
+
+        bool save_success = save_text(text, output_file_path);
+        if (!save_success)
+        {
+            sprintf(exit_message, "Could not save the file %s.\n", output_file_path);
             exit_status = 4;
         }
     }
 
     deallocate_text(text);
     console_cleanup();
+
+    if (exit_status != 0)
+        fprintf(stderr, "%s", exit_message);
+
     return exit_status;
 }

@@ -22,11 +22,11 @@ void set_cursor_position(int x, int y)
     #endif
 }
 
-static void write_line_to_console(char* line, int line_size, int screen_line)
+static void write_line_to_console(char* line, int screen_width, int screen_line)
 {
     #ifdef _WIN32
         static DWORD written;
-        WriteConsoleOutputCharacterA(GetStdHandle(STD_OUTPUT_HANDLE), line, line_size, (COORD){0, screen_line}, &written);
+        WriteConsoleOutputCharacterA(GetStdHandle(STD_OUTPUT_HANDLE), line, screen_width, (COORD){0, screen_line}, &written);
     #elif __linux__
         printf("\033[%d;1H", screen_line + 1); // // ANSI escape sequence is 1-indexed.
         fwrite(line, 1, line_size, stdout);
@@ -36,7 +36,7 @@ static void write_line_to_console(char* line, int line_size, int screen_line)
     #endif
 }
 
-static void print_line(const char* line, int screen_width, int cursor_x, int screen_line)
+void print_line(const char* line, int screen_width, int cursor_x, int screen_line)
 {
     int line_size = strlen(line);
     char* buffer = malloc(screen_width + 1);
