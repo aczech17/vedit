@@ -7,48 +7,24 @@
 #include "../headers/update.h"
 #include "../headers/view.h"
 
-typedef enum
-{
-    SUCCESS, ERROR, CANCEL
-}Saving_status;
+// typedef enum
+// {
+//     SUCCESS, ERROR, CANCEL
+// }Saving_status;
 
-Saving_status save(const Text* text, View* view)
-{
-    if (!text->modified)
-        return SUCCESS;
-
-    char output_file_path[100] = {0};
-    char* path_end = output_file_path;
-
-    print_line("Write file to:", view->screen_width, 0, view->text_height);
-    print_line("", view->screen_width, 0, view->text_height + 1);
-    view->cursor_x = 0;
-    set_cursor_position(view->cursor_x, view->text_height + 1);
-
-    Key_code key = {.key_type = NONE};
-    while (key.key_type != ENTER)
-    {
-        key = read_input();
-        if (key.key_type == ESCAPE)
-            return CANCEL;
-        if (key.key_type == F1)
-            return SUCCESS;
-
-        if (key.key_type == ALPHANUMERIC)
-        {
-            *path_end++ = (char)key.value;
-            view->cursor_x++;
-            print_line(output_file_path, view->screen_width, view->cursor_x, view->text_height + 1);
-            set_cursor_position(view->cursor_x, view->text_height + 1);
-        }
-    }
-
-    bool save_success = save_text(text, output_file_path);
-    if (!save_success)
-        return ERROR;
+// char* read_output_path(const Text* text, View* view, Key_code key)
+// {
     
-    return SUCCESS;
-}
+//     if (!text->modified)
+//         return SUCCESS;
+    
+//     static char output_file_path[100] = {0};
+//     static char* path_end = output_file_path;
+
+//     *path_end++ = (char)key.value;
+
+//     return output_file_path;
+// }
 
 int main(int argc, char** argv)
 {
@@ -95,54 +71,87 @@ int main(int argc, char** argv)
 
     clear_screen();
     bool running = true;
+    char output_path[1025] = {0};
+    char* output_end = output_path;
+
     while (running)
     {
         display_text(text, &view);
-        display_log(text, &view, mode);
+        display_log(text, &view, mode, output_path);
         set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
 
         Key_code input_key = read_input();  // blocking
 
+        // change mode if needed
         switch (mode)
         {
             case WATCH:
             {
                 if (input_key.value == 'I' || input_key.value == 'i')
+                {
                     mode = EDIT;
+                    continue;
+                }
                 if (input_key.key_type == ESCAPE)
+                {
                     mode = SAVE;
+                    continue; // ???
+                }
                 break;
             }
             case EDIT:
             {
                 if (input_key.key_type == ESCAPE)
+                {
                     mode = WATCH;
+                    continue; // ???
+                    break;
+                }
+                break;
+            }
+            case SAVE:
+            {
+                if (input_key.key_type == ESCAPE)
+                {
+                    mode = WATCH;
+                    continue;
+                }
+                if (input_key.key_type == F1)
+                {
+                    running = false;
+                    continue;
+                }
+                if (input_key.key_type == ENTER)
+                {
+                    save_text(text, output_path); // TODO check save status
+                    running = false;
+                    continue;
+                }
 
+                break;
+            }
+        }
+
+        switch (mode)
+        {
+            case WATCH:
+            {
+                break;
+            }
+            case EDIT:
+            {
                 update_text(text, &view, input_key);
                 break;
             }
             case SAVE:
             {
-                Saving_status saving_status = save(text, &view);
-                switch (saving_status)
+                if (input_key.key_type == ALPHANUMERIC)
                 {
-                    case SUCCESS:
-                    {
-                        running = false;
-                        break;
-                    }
-                    case CANCEL:
-                    {
-                        mode = WATCH;
-                        break;
-                    }
-                    case ERROR:
-                    {
-                        sprintf(exit_message, "Could not save the file.\n");
-                        exit_status = 4;
-                        break;
-                    }
+                    *output_end++ = (char)input_key.value;
                 }
+                // output_path = read_output_path(text, &view, input_key);
+                // continue;
+                
                 break;
             }
         }

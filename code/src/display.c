@@ -86,8 +86,16 @@ void clear_line(const View* view, int screen_line)
     free(empty_line);
 }
 
-void display_log(const Text* text, const View* view, const Mode mode)
+void display_log(const Text* text, const View* view, const Mode mode, const char* log_input)
 {
+    if (mode == SAVE)
+    {
+        print_line("Write file to:", view->screen_width, 0, view->text_height);
+        print_line(log_input, view->screen_width, 0, view->text_height + 1);
+        set_cursor_position(strlen(log_input), view->text_height + 1);
+        return;
+    }
+
     char* log = malloc(view->screen_width + 1);
     memset(log, ' ', view->screen_width);
     log[view->screen_width] = 0;

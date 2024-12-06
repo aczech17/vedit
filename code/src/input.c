@@ -8,6 +8,8 @@ char* mode_to_str(const Mode mode)
             return "WATCH";
         case EDIT:
             return "EDIT";
+        case SAVE:
+            return "SAVE";
         default:
             return "MODE UNKNOWN";
     }
@@ -116,17 +118,17 @@ Key_code read_input()
 static Key_code convert_key_code_linux(const char* sequence)
 {
     if (strcmp(sequence, "[A") == 0)
-        return special_key(UP);
+        return functional_key(UP);
     if (strcmp(sequence, "[B") == 0)
-        return special_key(DOWN);
+        return functional_key(DOWN);
     if (strcmp(sequence, "[C") == 0)
-        return special_key(RIGHT);
+        return functional_key(RIGHT);
     if (strcmp(sequence, "[D") == 0)
-        return special_key(LEFT);
+        return functional_key(LEFT);
     if (strcmp(sequence, "[H") == 0)
-        return special_key(HOME);
+        return functional_key(HOME);
     if (strcmp(sequence, "[F") == 0)
-        return special_key(END);
+        return functional_key(END);
 
     return no_key();
 }
@@ -158,7 +160,7 @@ Key_code read_input()
         else
         {
             // No more data, it's a standalone ESC key
-            return special_key(ESCAPE);
+            return functional_key(ESCAPE);
         }
 
         return no_key();
@@ -168,11 +170,11 @@ Key_code read_input()
     switch (buffer[0])
     {
         case 127: // Backspace
-            return special_key(BACKSPACE);
+            return functional_key(BACKSPACE);
         case '\n': // Enter
-            return special_key(ENTER);
+            return functional_key(ENTER);
         case 27:
-            return special_key(ESCAPE);
+            return functional_key(ESCAPE);
         default: // Alphanumeric
             return alphanumeric(buffer[0]);
     }
