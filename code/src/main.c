@@ -7,24 +7,6 @@
 #include "../headers/update.h"
 #include "../headers/view.h"
 
-// typedef enum
-// {
-//     SUCCESS, ERROR, CANCEL
-// }Saving_status;
-
-// char* read_output_path(const Text* text, View* view, Key_code key)
-// {
-    
-//     if (!text->modified)
-//         return SUCCESS;
-    
-//     static char output_file_path[100] = {0};
-//     static char* path_end = output_file_path;
-
-//     *path_end++ = (char)key.value;
-
-//     return output_file_path;
-// }
 
 int main(int argc, char** argv)
 {
@@ -95,7 +77,7 @@ int main(int argc, char** argv)
                 if (input_key.key_type == ESCAPE)
                 {
                     mode = SAVE;
-                    continue; // ???
+                    continue;
                 }
                 break;
             }
@@ -104,7 +86,7 @@ int main(int argc, char** argv)
                 if (input_key.key_type == ESCAPE)
                 {
                     mode = WATCH;
-                    continue; // ???
+                    continue;
                     break;
                 }
                 break;
@@ -123,7 +105,12 @@ int main(int argc, char** argv)
                 }
                 if (input_key.key_type == ENTER)
                 {
-                    save_text(text, output_path); // TODO check save status
+                    bool save_success = save_text(text, output_path);
+                    if (!save_success)
+                    {
+                        sprintf(exit_message, "Could not save the file %s.", output_path);
+                        exit_status = 4;
+                    }
                     running = false;
                     continue;
                 }
@@ -146,11 +133,7 @@ int main(int argc, char** argv)
             case SAVE:
             {
                 if (input_key.key_type == ALPHANUMERIC)
-                {
-                    *output_end++ = (char)input_key.value;
-                }
-                // output_path = read_output_path(text, &view, input_key);
-                // continue;
+                    *output_end++ = (char)input_key.value; // Read output path.
                 
                 break;
             }
