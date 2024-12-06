@@ -129,53 +129,56 @@ static Key_code convert_key_code_linux(const char* sequence)
         return functional_key(HOME);
     if (strcmp(sequence, "[F") == 0)
         return functional_key(END);
+    if (strcmp(sequence, "OP") == 0)
+        return functional_key(F1);
+    if (strcmp(sequence, "[11~") == 0)
+        return functional_key(F1);
 
     return no_key();
 }
 
 Key_code read_input()
 {
-    char buffer[3] = {0};
+    char buffer[5] = {0};
     ssize_t bytes_read = read(STDIN_FILENO, buffer, 1);
 
     if (bytes_read <= 0)
         return no_key();
 
-    if (buffer[0] == '\033') // Escape sequence or Escape key
+    if (buffer[0] == '\033') // Escape sequence or standalone escape key.
     {
-        // Peek to check if it's a standalone ESC key or a sequence
-        struct timeval timeout = {0, 10000}; // 10ms timeout
+        // Peek to check if it's a standalone ESC key or a sequence.
+        struct timeval timeout = {0, 10000};
         fd_set read_fds;
         FD_ZERO(&read_fds);
         FD_SET(STDIN_FILENO, &read_fds);
 
         if (select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &timeout) > 0)
         {
-            // There's more data, read it
-            if (read(STDIN_FILENO, buffer + 1, 2) == 2 && buffer[1] == '[')
+            if (read(STDIN_FILENO, buffer + 1, 4) >= 2) // There's more data, read it.
             {
-                return convert_key_code_linux(buffer + 1);
+                if (buffer[1] == '[' || buffer[1] == 'O')
+                {
+                    return convert_key_code_linux(buffer + 1);
+                }
             }
         }
         else
         {
-            // No more data, it's a standalone ESC key
-            return functional_key(ESCAPE);
+            return functional_key(ESCAPE); // No more data, it's a standalone ESC key.
         }
-
-        return no_key();
     }
 
     // Other ASCII chars
     switch (buffer[0])
     {
-        case 127: // Backspace
+        case 127:
             return functional_key(BACKSPACE);
-        case '\n': // Enter
+        case '\n':
             return functional_key(ENTER);
         case 27:
             return functional_key(ESCAPE);
-        default: // Alphanumeric
+        default:
             return alphanumeric(buffer[0]);
     }
 }
