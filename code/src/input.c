@@ -139,7 +139,7 @@ static Key_code convert_key_code_linux(const char* sequence)
 
 Key_code read_input()
 {
-    char buffer[5] = {0};
+    char buffer[6] = {0};
     ssize_t bytes_read = read(STDIN_FILENO, buffer, 1);
 
     if (bytes_read <= 0)
