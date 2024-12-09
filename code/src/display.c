@@ -88,17 +88,17 @@ void clear_line(const View* view, int screen_line)
 
 void display_log(const Text* text, const View* view, const Mode mode, const char* log_input)
 {
-    if (mode == SAVING)
+    if (mode == READ_PATH)
     {
         print_line("Write path to save (press F1 to discard and exit):", view->screen_width, 0, view->text_height);
-        print_line(log_input, view->screen_width, 0, view->text_height + 1);
+        print_line(log_input, view->screen_width, 0, view->text_height + 1); // and then print the actual path
         set_cursor_position(strlen(log_input), view->text_height + 1);
         return;
     }
-
+    
     char* log = malloc(view->screen_width + 1);
     memset(log, ' ', view->screen_width);
-    log[view->screen_width] = 0;
+    log[view->screen_width] = 0;    
 
     int selected_text_line = view->first_text_line + view->cursor_y;
     int line_count;

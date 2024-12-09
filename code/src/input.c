@@ -8,7 +8,7 @@ char* mode_to_str(const Mode mode)
             return "WATCH";
         case EDIT:
             return "EDIT";
-        case SAVING:
+        case READ_PATH:
             return "SAVE";
         default:
             return "MODE UNKNOWN";

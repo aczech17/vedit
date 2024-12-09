@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include "../headers/console_utils.h"
 #include "../headers/display.h"
 #include "../headers/input.h"
@@ -18,7 +19,7 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
             if (input_key.key_type == ESCAPE)
             {
                 if (saving_needed)
-                    return SAVING;
+                    return READ_PATH;
 
                 return QUIT; // If no saving is needed, just quit without saving.
             }
@@ -32,7 +33,7 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
 
             break;
         }
-        case SAVING:
+        case READ_PATH:
         {
             if (input_key.key_type == ESCAPE)
                 return WATCH;
@@ -97,40 +98,27 @@ int main(int argc, char** argv)
     char output_path[1025] = {0};
     char* output_end = output_path;
 
-    while (mode != QUIT)
+    for (;;)
     {
         display_text(text, &view);
         display_log(text, &view, mode, output_path);
-        set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
 
-        Key_code input_key = read_input(); // blocking
-        Mode new_mode = get_new_mode(mode, input_key, text->modified);
-        if (new_mode != mode && (mode == WATCH || mode == EDIT))
-        {
-            // If the mode has changed from watch to edit or from edit to wath, then read the input once again,
-            // so that the last input key, changing the mode, doesn't affect the text.
-            mode = new_mode;
-            continue;
-        }
-
-        mode = new_mode;
-    
+        // Update program view before getting a key.
         switch (mode)
         {
             case WATCH:
-            {
-                break;
-            }
             case EDIT:
             {
-                update_text(text, &view, input_key);
+                // Discard the input from user if any.
+                memset(output_path, 0, 1025); 
+                output_end = output_path;
+                
+                set_cursor_position(view.cursor_x % view.screen_width, view.cursor_y);
                 break;
             }
-            case SAVING:
+            case READ_PATH:
             {
-                if (input_key.key_type == ALPHANUMERIC)
-                    *output_end++ = (char)input_key.value; // Read output path.
-
+                set_cursor_position(output_end - output_path, view.text_height + 1);
                 break;
             }
             case SAVE:
@@ -150,6 +138,42 @@ int main(int argc, char** argv)
                 // Do nothing, just end the main loop and quit.
                 break;
             }
+        }
+        
+        if (mode == QUIT)
+            break;
+
+        Key_code input_key = read_input(); // blocking
+        Mode new_mode = get_new_mode(mode, input_key, text->modified);
+        if (new_mode != mode && (mode == WATCH || mode == EDIT))
+        {
+            // If the mode has changed from watch to edit or from edit to wath, then read the input once again,
+            // so that the last input key, changing the mode, doesn't affect the text.
+            mode = new_mode;
+            continue;
+        }
+
+        mode = new_mode;
+    
+        switch (mode)
+        {
+            case EDIT:
+            {
+                update_text(text, &view, input_key);
+                break;
+            }
+            case READ_PATH:
+            {
+                if (input_key.key_type == ALPHANUMERIC)
+                    *output_end++ = (char)input_key.value; // Read output path.
+
+                if (input_key.key_type == BACKSPACE)
+                    *(--output_end) = 0;
+                
+                break;
+            }
+            default:
+                break;
         }
 
         update_view(text, &view, input_key);
