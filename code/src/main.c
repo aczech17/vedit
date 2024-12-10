@@ -172,7 +172,16 @@ int main(int argc, char** argv)
                 }
 
                 if (input_key.character_type == BACKSPACE)
-                    *(--output_end) = 0;
+                {
+                    int output_path_character_count = character_count_of_string(output_path);
+                    if (output_path_character_count == 0)
+                        break;
+                        
+                    int new_output_path_size = length_of_characters(output_path, output_path_character_count - 1);
+
+                    output_end = output_path + new_output_path_size;
+                    *output_end = 0;
+                }
                 
                 break;
             }
