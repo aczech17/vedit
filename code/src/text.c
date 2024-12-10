@@ -294,28 +294,6 @@ void join_lines(Text* text, int upper_line_number)
     text->line_count--;
 }
 
-bool save_text(const Text* text, const char* filename)
-{
-    FILE* output_file = fopen(filename, "wb");
-    if (output_file == NULL)
-        return false;
-
-    for (int line_number = 0; line_number < text->line_count - 1; ++line_number)
-    {
-        char* line = text->lines[line_number];
-        fprintf(output_file, "%s\n", line);
-    }
-
-    char* last_line = text->lines[text->line_count - 1];
-    if (strlen(last_line) != 0)   // The last line is not empty, so there's no empty line at the end.
-        fprintf(output_file, "%s", last_line);
-
-    fclose(output_file);
-    return true;
-}
-
-#include <stddef.h>
-
 int length_of_characters(Text* text, int line_number, int character_count)
 {
     if (character_count == 0)
@@ -371,3 +349,72 @@ void deallocate_text(Text* text)
     free(text->lines);
     free(text);
 }
+
+#ifdef _WIN32
+#include <windows.h>
+
+bool save_text(const Text* text, const char* filename)
+{
+    // First convert filename to UTF-16.
+    wchar_t filename_utf16[257];
+
+    int convertion_status =
+        MultiByteToWideChar(CP_UTF8, 0, filename, -1, filename_utf16, sizeof(filename_utf16) / sizeof(wchar_t));
+    if (convertion_status == 0)
+        return false;
+
+    HANDLE file = CreateFileW
+    (
+        filename_utf16,
+        GENERIC_WRITE,
+        0,          // no sharing
+        NULL,       // no protection
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL        // no template file
+    );
+
+    if (file == INVALID_HANDLE_VALUE)
+        return false;
+
+
+    DWORD written;
+    for (int line_number = 0; line_number < text->line_count - 1; ++line_number)
+    {
+        char* line = text->lines[line_number];
+        char* line_with_endline = malloc(strlen(line) + 3); // 3 just to be sure
+        sprintf(line_with_endline, "%s\n", line);
+        WriteFile(file, line_with_endline, (DWORD)(strlen(line_with_endline)), &written, NULL);
+    }
+
+    char* last_line = text->lines[text->line_count - 1];
+    if (strlen(last_line) != 0)   // The last line is not empty, so there's no empty line at the end.
+        WriteFile(file, last_line, (DWORD)(strlen(last_line)), &written, NULL);
+
+    CloseHandle(file);
+    return true;
+}
+
+#elif __linux__
+
+bool save_text(const Text* text, const char* filename)
+{
+    FILE* output_file = fopen(filename, "wb");
+    if (output_file == NULL)
+        return false;
+
+    for (int line_number = 0; line_number < text->line_count - 1; ++line_number)
+    {
+        char* line = text->lines[line_number];
+        fprintf(output_file, "%s\n", line);
+    }
+
+    char* last_line = text->lines[text->line_count - 1];
+    if (strlen(last_line) != 0)   // The last line is not empty, so there's no empty line at the end.
+        fprintf(output_file, "%s", last_line);
+
+    fclose(output_file);
+    return true;
+}
+
+#endif
