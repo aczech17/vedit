@@ -68,7 +68,7 @@ void update_text(Text* text, View* view, Character input_character)
 void update_view(const Text* text, View* view, Character input_character)
 {
     int current_text_line = view->first_text_line + view->cursor_y;
-    int current_text_line_size = strlen(text->lines[current_text_line]);
+    int current_text_line_size =  character_count_of_line(text, current_text_line);
 
     switch (input_character.character_type)
     {
