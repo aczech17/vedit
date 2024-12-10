@@ -8,7 +8,7 @@
 #include "../headers/update.h"
 #include "../headers/view.h"
 
-Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
+Mode get_new_mode(Mode mode, Character input_key, bool saving_needed)
 {
     switch (mode)
     {
@@ -16,7 +16,7 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
         {
             if (input_key.value == 'I' || input_key.value == 'i')
                 return EDIT;
-            if (input_key.key_type == ESCAPE)
+            if (input_key.character_type == ESCAPE)
             {
                 if (saving_needed)
                     return READ_PATH;
@@ -28,18 +28,18 @@ Mode get_new_mode(Mode mode, Key_code input_key, bool saving_needed)
         }
         case EDIT:
         {
-            if (input_key.key_type == ESCAPE)
+            if (input_key.character_type == ESCAPE)
                 return WATCH;
 
             break;
         }
         case READ_PATH:
         {
-            if (input_key.key_type == ESCAPE)
+            if (input_key.character_type == ESCAPE)
                 return WATCH;
-            if (input_key.key_type == ENTER)
+            if (input_key.character_type == ENTER)
                 return SAVE;
-            if (input_key.key_type == F1)
+            if (input_key.character_type == F1)
                 return QUIT;
 
             break;
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
         if (mode == QUIT)
             break;
 
-        Key_code input_key = read_input(); // blocking
+        Character input_key = read_input(); // blocking
         Mode new_mode = get_new_mode(mode, input_key, text->modified);
         if (new_mode != mode && (mode == WATCH || mode == EDIT))
         {
@@ -164,10 +164,10 @@ int main(int argc, char** argv)
             }
             case READ_PATH:
             {
-                if (input_key.key_type == ALPHANUMERIC)
+                if (input_key.character_type == ALPHANUMERIC)
                     *output_end++ = (char)input_key.value; // Read output path.
 
-                if (input_key.key_type == BACKSPACE)
+                if (input_key.character_type == BACKSPACE)
                     *(--output_end) = 0;
                 
                 break;

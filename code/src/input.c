@@ -15,25 +15,25 @@ char* mode_to_str(const Mode mode)
     }
 }
 
-static Key_code functional_key(Key_type key_type)
+static Character functional_key(Character_type character_type)
 {
-    return (Key_code){.key_type = key_type, .value = 0};
+    return (Character){.character_type = character_type, .value = 0};
 }
 
-static Key_code no_key()
+static Character no_key()
 {
-    return (Key_code){.key_type = NONE, .value = 0};
+    return (Character){.character_type = NONE, .value = 0};
 }
 
-static Key_code alphanumeric(int value)
+static Character ascii_character(int value)
 {
-    return (Key_code){.key_type = ALPHANUMERIC, .value = value};
+    return (Character){.character_type = ALPHANUMERIC, .value = value};
 }
 
 #ifdef _WIN32
 #include <windows.h>
 
-static Key_code convert_special_key_code_windows(int winapi_input_key, bool is_shift_pressed)
+static Character convert_special_key_code_windows(int winapi_input_key, bool is_shift_pressed)
 {
     switch (winapi_input_key)
     {
@@ -48,34 +48,34 @@ static Key_code convert_special_key_code_windows(int winapi_input_key, bool is_s
         case VK_ESCAPE:      return functional_key(ESCAPE);
         case VK_F1:          return functional_key(F1);
 
-        case VK_OEM_PERIOD:  return alphanumeric(is_shift_pressed ? '>' : '.');
-        case VK_OEM_COMMA:   return alphanumeric(is_shift_pressed ? '<' : ',');
-        case VK_OEM_1:       return alphanumeric(is_shift_pressed ? ':' : ';');
-        case VK_OEM_2:       return alphanumeric(is_shift_pressed ? '?' : '/');
-        case VK_OEM_3:       return alphanumeric(is_shift_pressed ? '~' : '`');
-        case VK_OEM_4:       return alphanumeric(is_shift_pressed ? '{' : '[');
-        case VK_OEM_5:       return alphanumeric(is_shift_pressed ? '|' : '\\');
-        case VK_OEM_6:       return alphanumeric(is_shift_pressed ? '}' : ']');
-        case VK_OEM_7:       return alphanumeric(is_shift_pressed ? '"' : '\'');
-        case VK_OEM_PLUS:    return alphanumeric(is_shift_pressed ? '+' : '=');
-        case VK_OEM_MINUS:   return alphanumeric(is_shift_pressed ? '_' : '-');    
-        case '1': return alphanumeric(is_shift_pressed ? '!' : '1');
-        case '2': return alphanumeric(is_shift_pressed ? '@' : '2');
-        case '3': return alphanumeric(is_shift_pressed ? '#' : '3');
-        case '4': return alphanumeric(is_shift_pressed ? '$' : '4');
-        case '5': return alphanumeric(is_shift_pressed ? '%' : '5');
-        case '6': return alphanumeric(is_shift_pressed ? '^' : '6');
-        case '7': return alphanumeric(is_shift_pressed ? '&' : '7');
-        case '8': return alphanumeric(is_shift_pressed ? '*' : '8');
-        case '9': return alphanumeric(is_shift_pressed ? '(' : '9');
-        case '0': return alphanumeric(is_shift_pressed ? ')' : '0');
-        case ' ': return alphanumeric(' ');
+        case VK_OEM_PERIOD:  return ascii_character(is_shift_pressed ? '>' : '.');
+        case VK_OEM_COMMA:   return ascii_character(is_shift_pressed ? '<' : ',');
+        case VK_OEM_1:       return ascii_character(is_shift_pressed ? ':' : ';');
+        case VK_OEM_2:       return ascii_character(is_shift_pressed ? '?' : '/');
+        case VK_OEM_3:       return ascii_character(is_shift_pressed ? '~' : '`');
+        case VK_OEM_4:       return ascii_character(is_shift_pressed ? '{' : '[');
+        case VK_OEM_5:       return ascii_character(is_shift_pressed ? '|' : '\\');
+        case VK_OEM_6:       return ascii_character(is_shift_pressed ? '}' : ']');
+        case VK_OEM_7:       return ascii_character(is_shift_pressed ? '"' : '\'');
+        case VK_OEM_PLUS:    return ascii_character(is_shift_pressed ? '+' : '=');
+        case VK_OEM_MINUS:   return ascii_character(is_shift_pressed ? '_' : '-');    
+        case '1': return ascii_character(is_shift_pressed ? '!' : '1');
+        case '2': return ascii_character(is_shift_pressed ? '@' : '2');
+        case '3': return ascii_character(is_shift_pressed ? '#' : '3');
+        case '4': return ascii_character(is_shift_pressed ? '$' : '4');
+        case '5': return ascii_character(is_shift_pressed ? '%' : '5');
+        case '6': return ascii_character(is_shift_pressed ? '^' : '6');
+        case '7': return ascii_character(is_shift_pressed ? '&' : '7');
+        case '8': return ascii_character(is_shift_pressed ? '*' : '8');
+        case '9': return ascii_character(is_shift_pressed ? '(' : '9');
+        case '0': return ascii_character(is_shift_pressed ? ')' : '0');
+        case ' ': return ascii_character(' ');
 
         default: return no_key();
     }
 }
 
-Key_code read_input()
+Character read_input()
 {
     static INPUT_RECORD input_record;
     static DWORD events;
@@ -90,8 +90,8 @@ Key_code read_input()
 
         // First check if the key is special, because some special keys may appear as a regular ASCII,
         // eg. F1 and 'p'.
-        Key_code converted = convert_special_key_code_windows(input_key, is_shift_pressed);
-        if (converted.key_type != NONE)
+        Character converted = convert_special_key_code_windows(input_key, is_shift_pressed);
+        if (converted.character_type != NONE)
             return converted;
 
         // Now we are sure the key is none of a special.
@@ -103,7 +103,7 @@ Key_code read_input()
         if (!uppercase)
             input_key = tolower(input_key);
             
-        return alphanumeric(input_key);
+        return ascii_character(input_key);
     }
 
     return no_key();
@@ -115,7 +115,7 @@ Key_code read_input()
 #include <sys/select.h>
 #include <sys/time.h>
 
-static Key_code convert_key_code_linux(const char* sequence)
+static Character convert_key_code_linux(const char* sequence)
 {
     if (strcmp(sequence, "[A") == 0)
         return functional_key(UP);
@@ -137,7 +137,7 @@ static Key_code convert_key_code_linux(const char* sequence)
     return no_key();
 }
 
-Key_code read_input()
+Character read_input()
 {
     char buffer[6] = {0};
     ssize_t bytes_read = read(STDIN_FILENO, buffer, 1);
@@ -179,7 +179,7 @@ Key_code read_input()
         case 27:
             return functional_key(ESCAPE);
         default:
-            return alphanumeric(buffer[0]);
+            return ascii_character(buffer[0]);
     }
 }
 

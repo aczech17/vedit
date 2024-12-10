@@ -2,12 +2,12 @@
 #include <string.h>
 #include "../headers/console_utils.h"
 
-void update_text(Text* text, View* view, Key_code input_key)
+void update_text(Text* text, View* view, Character input_key)
 {
     int current_text_line = view->first_text_line + view->cursor_y;
 
     bool modified_now = true;
-    switch (input_key.key_type)
+    switch (input_key.character_type)
     {
         case ALPHANUMERIC:
         {
@@ -64,12 +64,12 @@ void update_text(Text* text, View* view, Key_code input_key)
         text->modified = modified_now;
 }
 
-void update_view(const Text* text, View* view, Key_code input_key)
+void update_view(const Text* text, View* view, Character input_key)
 {
     int current_text_line = view->first_text_line + view->cursor_y;
     int current_text_line_size = strlen(text->lines[current_text_line]);
 
-    switch (input_key.key_type)
+    switch (input_key.character_type)
     {
         case ALPHANUMERIC:
             return;

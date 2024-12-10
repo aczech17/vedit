@@ -2,31 +2,14 @@
 #define INPUT_H
 
 #include "text.h"
-
-typedef enum
-{
-    UP, DOWN, LEFT, RIGHT,
-    HOME, END,
-    ENTER, BACKSPACE,
-    ESCAPE,
-    F1,
-    
-    ALPHANUMERIC,
-    NONE
-}Key_type;
-
-typedef struct
-{
-    Key_type key_type;
-    int value;
-}Key_code;
+#include "character.h"
 
 typedef enum
 {
     WATCH, EDIT, READ_PATH, SAVE, QUIT,
 }Mode;
 
-Key_code read_input();
+Character read_input();
 char* mode_to_str(const Mode mode);
 
 #endif // INPUT_H
