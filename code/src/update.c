@@ -11,7 +11,8 @@ void update_text(Text* text, View* view, Character input_character)
     {
         case ALPHANUMERIC:
         {
-            push_character(text, current_text_line, view->cursor_x, input_character);
+            int position_to_push = length_of_characters(text, current_text_line, view->cursor_x);
+            push_character(text, current_text_line, position_to_push, input_character);
             view->cursor_x++;
             break;
         }
