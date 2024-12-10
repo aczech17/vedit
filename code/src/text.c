@@ -318,6 +318,9 @@ bool save_text(const Text* text, const char* filename)
 
 int length_of_characters(Text* text, int line_number, int character_count)
 {
+    if (character_count == 0)
+        return 0;
+        
     char* line = text->lines[line_number];
     int byte_count = 0;
     int characters_processed = 0;
