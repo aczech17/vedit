@@ -200,27 +200,29 @@ void push_character(Text* text, int line_number, int char_position, Character ch
     text->lines[line_number] = new_line;
 }
 
-void delete_character(Text* text, int line_number, int char_position)
+void delete_character(Text* text, int line_number, int character_number)
 {
-    if (char_position == -1)
+    if (character_number == -1)
     {
         if (line_number > 0)
             join_lines(text, line_number - 1);
-        // else
+
         return;
     }
     
+
     char* line = text->lines[line_number];
     int old_line_size = strlen(line);
-    char* new_line = malloc(old_line_size); // -1 because of deletion and + 1 because of '\0'. -1 + 1 = 0
 
-    for (int i = 0; i < char_position; ++i)
-        new_line[i] = line[i];
+    int bytes_before_cut = length_of_characters(text, line_number, character_number);
+    int cut_size = length_of_characters(text, line_number, character_number + 1) - bytes_before_cut;
     
-    for (int i = char_position + 1; i < old_line_size; ++i)
-        new_line[i - 1] = line[i];
+    int new_line_size = old_line_size - cut_size;
+    char* new_line = malloc(new_line_size + 1);
 
-    new_line[old_line_size - 1] = 0; // Size of the buffer is old_line_size, so the terminator index is old_line_size - 1.
+    memcpy(new_line, line, bytes_before_cut);
+    memcpy(new_line + bytes_before_cut, line + bytes_before_cut + cut_size, new_line_size - bytes_before_cut);
+    new_line[new_line_size] = 0;
 
     free(line);
     text->lines[line_number] = new_line;

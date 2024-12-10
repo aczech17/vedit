@@ -16,7 +16,7 @@ typedef struct
 Text* empty_text();
 Text* get_text_from_file(FILE*);
 void push_character(Text* text, int line_number, int char_position, Character character);
-void delete_character(Text* text, int line_number, int char_position);
+void delete_character(Text* text, int line_number, int character_number);
 void delete_line(Text* text, int line_number);
 void split_lines(Text* text, int line_number, int split_position);
 void join_lines(Text* text, int upper_line_number);
