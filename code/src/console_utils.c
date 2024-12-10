@@ -15,6 +15,7 @@ void console_setup()
 {
     #ifdef _WIN32
         SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
         DWORD prev_mode;
         HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
         GetConsoleMode(hInput, &prev_mode);

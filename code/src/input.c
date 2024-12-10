@@ -17,21 +17,22 @@ char* mode_to_str(const Mode mode)
 
 static Character functional_key(Character_type character_type)
 {
-    return (Character){.character_type = character_type, .value = 0};
+    return (Character){.character_type = character_type, .bytes = {0}, .size = 1};
 }
 
 static Character no_key()
 {
-    return (Character){.character_type = NONE, .value = 0};
+    return (Character){.character_type = NONE, .bytes = {0}, .size = 0};
 }
 
 static Character ascii_character(int value)
 {
-    return (Character){.character_type = ALPHANUMERIC, .value = value};
+    return (Character){.character_type = ALPHANUMERIC, .bytes = {(char)value}, .size = 1};
 }
 
 #ifdef _WIN32
 #include <windows.h>
+#include <string.h>
 
 static Character convert_special_key_code_windows(int winapi_input_key, bool is_shift_pressed)
 {
@@ -77,36 +78,51 @@ static Character convert_special_key_code_windows(int winapi_input_key, bool is_
 
 Character read_input()
 {
-    static INPUT_RECORD input_record;
+    static INPUT_RECORD input_record[128];
     static DWORD events;
-    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &input_record, 1, &events);
-
-    bool is_shift_pressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-    bool is_caps_lock_on = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), input_record, 128, &events);
     
-    if (input_record.EventType == KEY_EVENT && input_record.Event.KeyEvent.bKeyDown)
+
+    // First check if special.
+    if (input_record[0].EventType == KEY_EVENT && input_record[0].Event.KeyEvent.bKeyDown)
     {
-        int input_key = input_record.Event.KeyEvent.wVirtualKeyCode;
+        bool is_shift_pressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+        int input_key = input_record[0].Event.KeyEvent.wVirtualKeyCode;
 
-        // First check if the key is special, because some special keys may appear as a regular ASCII,
-        // eg. F1 and 'p'.
-        Character converted = convert_special_key_code_windows(input_key, is_shift_pressed);
-        if (converted.character_type != NONE)
-            return converted;
-
-        // Now we are sure the key is none of a special.
-
-        if (!isalpha(input_key))    // No special key, no alpha, it's irrelevant.
-            return no_key();
-
-        bool uppercase = is_shift_pressed ^ is_caps_lock_on;
-        if (!uppercase)
-            input_key = tolower(input_key);
-            
-        return ascii_character(input_key);
+        Character special_key = convert_special_key_code_windows(input_key, is_shift_pressed);
+        if (special_key.character_type != NONE)
+            return special_key;
     }
 
-    return no_key();
+    // No special key, it's a unicode character.
+    char bytes[4] = {0};
+    int bytes_count = 0;
+
+    for (DWORD i = 0; i < events; ++i)
+    {
+        if (input_record[i].EventType == KEY_EVENT && input_record[i].Event.KeyEvent.bKeyDown)
+        {
+            wchar_t pressed_char = input_record[i].Event.KeyEvent.uChar.UnicodeChar;
+            if (pressed_char == 0)
+                continue;
+
+            bytes[bytes_count++] = (char)(pressed_char & 0xFF);
+            if (pressed_char > 0xFF)
+                bytes[bytes_count++] = (char)((pressed_char >> 8) & 0xFF);
+        }
+    }
+
+    if (bytes_count == 0)
+        return no_key();
+
+    Character character =
+    {
+        .character_type = ALPHANUMERIC,
+        .size = bytes_count,
+    };
+    memcpy(character.bytes, bytes, bytes_count);
+
+    return character;
 }
 
 #elif __linux__

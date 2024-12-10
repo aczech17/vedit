@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include "character.h"
 
 typedef struct
 {
@@ -14,7 +15,7 @@ typedef struct
 
 Text* empty_text();
 Text* get_text_from_file(FILE*);
-void push_character(Text* text, int line_number, int char_position, char value);
+void push_character(Text* text, int line_number, int char_position, Character character);
 void delete_character(Text* text, int line_number, int char_position);
 void delete_line(Text* text, int line_number);
 void split_lines(Text* text, int line_number, int split_position);

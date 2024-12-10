@@ -182,23 +182,19 @@ Text* get_text_from_file(FILE* file)
     return text;
 }
 
-void push_character(Text* text, int line_number, int char_position, char value)
+void push_character(Text* text, int line_number, int char_position, Character character)
 {
     if (line_number >= text->line_count)
         return;
 
     char* line = text->lines[line_number];
     int line_size = strlen(line);
-    char* new_line = malloc(line_size + 2);
+    char* new_line = malloc(line_size + character.size + 1);
 
-    for (int i = 0; i < char_position; ++i)
-        new_line[i] = line[i];
-
-    new_line[char_position] = value;
-
-    for (int i = char_position; i < line_size; ++i)
-        new_line[i + 1] = line[i];
-    new_line[line_size + 1] = 0;
+    memcpy(new_line, line, char_position);
+    memcpy(new_line + char_position, character.bytes, character.size);
+    memcpy(new_line + char_position + character.size, line + char_position, line_size - char_position);
+    new_line[line_size + character.size] = 0;
     
     free(text->lines[line_number]);
     text->lines[line_number] = new_line;

@@ -14,7 +14,7 @@ Mode get_new_mode(Mode mode, Character input_key, bool saving_needed)
     {
         case WATCH:
         {
-            if (input_key.value == 'I' || input_key.value == 'i')
+            if (input_key.bytes[0] == 'I' || input_key.bytes[0] == 'i')
                 return EDIT;
             if (input_key.character_type == ESCAPE)
             {
@@ -165,7 +165,10 @@ int main(int argc, char** argv)
             case READ_PATH:
             {
                 if (input_key.character_type == ALPHANUMERIC)
-                    *output_end++ = (char)input_key.value; // Read output path.
+                {
+                    memcpy(output_end, input_key.bytes, input_key.size);
+                    output_end += input_key.size;
+                }
 
                 if (input_key.character_type == BACKSPACE)
                     *(--output_end) = 0;

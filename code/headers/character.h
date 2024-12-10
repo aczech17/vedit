@@ -16,7 +16,8 @@ typedef enum
 typedef struct
 {
     Character_type character_type;
-    int value;
+    char bytes[4];
+    int size;
 }Character;
 
 #endif // CHARACTER_H
