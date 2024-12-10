@@ -7,6 +7,7 @@
 #include "../headers/text.h"
 #include "../headers/update.h"
 #include "../headers/view.h"
+#include "../headers/character.h"
 
 Mode get_new_mode(Mode mode, Character input_key, bool saving_needed)
 {
@@ -118,7 +119,7 @@ int main(int argc, char** argv)
             }
             case READ_PATH:
             {
-                set_cursor_position(output_end - output_path, view.text_height + 1);
+                set_cursor_position(character_count_of_string(output_path), view.text_height + 1);
                 break;
             }
             case SAVE:

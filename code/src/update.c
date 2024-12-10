@@ -1,6 +1,7 @@
 #include "../headers/update.h"
 #include <string.h>
 #include "../headers/console_utils.h"
+#include "../headers/character.h"
 
 void update_text(Text* text, View* view, Character input_character)
 {
@@ -11,7 +12,7 @@ void update_text(Text* text, View* view, Character input_character)
     {
         case ALPHANUMERIC:
         {
-            int position_to_push = length_of_characters(text, current_text_line, view->cursor_x);
+            int position_to_push = length_of_characters(text->lines[current_text_line], view->cursor_x);
             push_character(text, current_text_line, position_to_push, input_character);
             view->cursor_x++;
             break;
@@ -68,7 +69,7 @@ void update_text(Text* text, View* view, Character input_character)
 void update_view(const Text* text, View* view, Character input_character)
 {
     int current_text_line = view->first_text_line + view->cursor_y;
-    int current_text_line_size =  character_count_of_line(text, current_text_line);
+    int current_text_line_size =  character_count_of_string(text->lines[current_text_line]);
 
     switch (input_character.character_type)
     {

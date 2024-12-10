@@ -20,8 +20,7 @@ void delete_character(Text* text, int line_number, int character_number);
 void delete_line(Text* text, int line_number);
 void split_lines(Text* text, int line_number, int split_position);
 void join_lines(Text* text, int upper_line_number);
-int length_of_characters(const Text* text, int line_number, int character_count);
-int character_count_of_line(const Text* text, int line_number);
+
 bool save_text(const Text* text, const char* filename);
 void deallocate_text(Text*);
 

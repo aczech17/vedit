@@ -1,4 +1,4 @@
-SRC = code/src/main.c code/src/update.c code/src/text.c code/src/display.c code/src/view.c code/src/input.c code/src/console_utils.c
+SRC = code/src/main.c code/src/character.c code/src/update.c code/src/text.c code/src/display.c code/src/view.c code/src/input.c code/src/console_utils.c
 
 default:	vedit
 

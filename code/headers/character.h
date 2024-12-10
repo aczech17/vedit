@@ -20,4 +20,7 @@ typedef struct
     int size;
 }Character;
 
+int length_of_characters(char* string, int character_count);
+int character_count_of_string(char* string);
+
 #endif // CHARACTER_H
