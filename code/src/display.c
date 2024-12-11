@@ -96,18 +96,28 @@ void display_text(const Text* text, const View* view)
 
 void display_log(const Text* text, const View* view, const Mode mode, const char* log_input)
 {
+    char* log = malloc(view->screen_width + 1);
+    memset(log, ' ', view->screen_width);
+    log[view->screen_width] = 0;
+
     if (mode == READ_PATH)
     {
-        print_line("Write path to save (press F1 to discard and exit):", view->screen_width, 0, view->text_height);
-        print_line(log_input, view->screen_width, 0, view->text_height + 1); // and then print the actual path
+        const char* save_prompt = "Write path to save (press F1 to discard and exit):";
+        strcpy(log, save_prompt);
+        write_line_to_console(log, view->screen_width, view->text_height);
+
+        memset(log, ' ', view->screen_width);
+
+        strcpy(log, log_input);
+        write_line_to_console(log, view->screen_width, view->text_height + 1);
+
         set_cursor_position(strlen(log_input), view->text_height + 1);
+
+        free(log);
         return;
     }
     
-    char* log = malloc(view->screen_width + 1);
-    memset(log, ' ', view->screen_width);
-    log[view->screen_width] = 0;    
-
+    
     int selected_text_line = view->first_text_line + view->cursor_y;
     int line_count;
     if (text->line_count == 1 && strlen(text->lines[0]) == 0)

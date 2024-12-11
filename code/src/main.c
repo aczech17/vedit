@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 
         Character input_key = read_input(); // blocking
         Mode new_mode = get_new_mode(mode, input_key, text->modified);
-        if (new_mode != mode && (mode == WATCH || mode == EDIT))
+        if ((mode == WATCH && new_mode == EDIT) || (mode == EDIT && new_mode == WATCH))
         {
             // If the mode has changed from watch to edit or from edit to wath, then read the input once again,
             // so that the last input key, changing the mode, doesn't affect the text.
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
                     output_end += input_key.size;
                 }
 
-                if (input_key.character_type == BACKSPACE)
+                else if (input_key.character_type == BACKSPACE)
                 {
                     int output_path_character_count = count_of_characters(output_path);
                     if (output_path_character_count == 0)

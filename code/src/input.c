@@ -43,7 +43,7 @@ static Character convert_special_key_code_windows(int winapi_input_key)
         case VK_BACK:        return functional_key(BACKSPACE);
         case VK_ESCAPE:      return functional_key(ESCAPE);
         case VK_F1:          return functional_key(F1);
-        default: return no_key();
+        default:             return no_key();
     }
 }
 
@@ -99,8 +99,6 @@ Character read_input()
 #include <string.h>
 #include <unistd.h>
 #include <sys/select.h>
-#include <sys/time.h>
-#include <stdbool.h>
 
 static int utf8_sequence_length(char byte)
 {
