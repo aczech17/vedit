@@ -130,6 +130,17 @@ Character read_input()
 #include <unistd.h>
 #include <sys/select.h>
 #include <sys/time.h>
+#include <stdbool.h>
+
+static int utf8_sequence_length(char byte)
+{
+    // Determine the number of bytes in the UTF-8 sequence based on the first byte
+    if ((byte & 0x80) == 0) return 1;         // ASCII
+    if ((byte & 0xE0) == 0xC0) return 2;      // Two-byte sequence
+    if ((byte & 0xF0) == 0xE0) return 3;      // Three-byte sequence
+    if ((byte & 0xF8) == 0xF0) return 4;      // Four-byte sequence
+    return -1;                                // Invalid UTF-8 start byte
+}
 
 static Character convert_key_code_linux(const char* sequence)
 {
@@ -185,7 +196,7 @@ Character read_input()
         }
     }
 
-    // Other ASCII chars
+    // Other ASCII chars (processed after UTF-8 check for better logic)
     switch (buffer[0])
     {
         case 127:
@@ -194,9 +205,30 @@ Character read_input()
             return functional_key(ENTER);
         case 27:
             return functional_key(ESCAPE);
-        default:
-            return ascii_character(buffer[0]);
     }
+
+    // Check if it's a UTF-8 character
+    int utf8_len = utf8_sequence_length(buffer[0]);
+    if (utf8_len == -1) // Invalid UTF-8 start byte
+    {
+        return no_key();
+    }
+
+    if (utf8_len > 1)
+    {
+        ssize_t additional_bytes_read = read(STDIN_FILENO, buffer + 1, utf8_len - 1);
+        if (additional_bytes_read != utf8_len - 1)
+        {
+            return no_key(); // Incomplete UTF-8 sequence
+        }
+    }
+
+    // Return the UTF-8 character
+    Character utf8_char;
+    utf8_char.character_type = ALPHANUMERIC;
+    memcpy(utf8_char.bytes, buffer, utf8_len);
+    utf8_char.size = utf8_len;
+    return utf8_char;
 }
 
 #endif
