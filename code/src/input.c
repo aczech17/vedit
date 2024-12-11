@@ -25,16 +25,11 @@ static Character no_key()
     return (Character){.character_type = NONE, .bytes = {0}, .size = 0};
 }
 
-static Character ascii_character(int value)
-{
-    return (Character){.character_type = ALPHANUMERIC, .bytes = {(char)value}, .size = 1};
-}
-
 #ifdef _WIN32
 #include <windows.h>
 #include <string.h>
 
-static Character convert_special_key_code_windows(int winapi_input_key, bool is_shift_pressed)
+static Character convert_special_key_code_windows(int winapi_input_key)
 {
     switch (winapi_input_key)
     {
@@ -48,30 +43,6 @@ static Character convert_special_key_code_windows(int winapi_input_key, bool is_
         case VK_BACK:        return functional_key(BACKSPACE);
         case VK_ESCAPE:      return functional_key(ESCAPE);
         case VK_F1:          return functional_key(F1);
-
-        case VK_OEM_PERIOD:  return ascii_character(is_shift_pressed ? '>' : '.');
-        case VK_OEM_COMMA:   return ascii_character(is_shift_pressed ? '<' : ',');
-        case VK_OEM_1:       return ascii_character(is_shift_pressed ? ':' : ';');
-        case VK_OEM_2:       return ascii_character(is_shift_pressed ? '?' : '/');
-        case VK_OEM_3:       return ascii_character(is_shift_pressed ? '~' : '`');
-        case VK_OEM_4:       return ascii_character(is_shift_pressed ? '{' : '[');
-        case VK_OEM_5:       return ascii_character(is_shift_pressed ? '|' : '\\');
-        case VK_OEM_6:       return ascii_character(is_shift_pressed ? '}' : ']');
-        case VK_OEM_7:       return ascii_character(is_shift_pressed ? '"' : '\'');
-        case VK_OEM_PLUS:    return ascii_character(is_shift_pressed ? '+' : '=');
-        case VK_OEM_MINUS:   return ascii_character(is_shift_pressed ? '_' : '-');    
-        case '1': return ascii_character(is_shift_pressed ? '!' : '1');
-        case '2': return ascii_character(is_shift_pressed ? '@' : '2');
-        case '3': return ascii_character(is_shift_pressed ? '#' : '3');
-        case '4': return ascii_character(is_shift_pressed ? '$' : '4');
-        case '5': return ascii_character(is_shift_pressed ? '%' : '5');
-        case '6': return ascii_character(is_shift_pressed ? '^' : '6');
-        case '7': return ascii_character(is_shift_pressed ? '&' : '7');
-        case '8': return ascii_character(is_shift_pressed ? '*' : '8');
-        case '9': return ascii_character(is_shift_pressed ? '(' : '9');
-        case '0': return ascii_character(is_shift_pressed ? ')' : '0');
-        case ' ': return ascii_character(' ');
-
         default: return no_key();
     }
 }
@@ -86,10 +57,9 @@ Character read_input()
     // First check if special.
     if (input_record[0].EventType == KEY_EVENT && input_record[0].Event.KeyEvent.bKeyDown)
     {
-        bool is_shift_pressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
         int input_key = input_record[0].Event.KeyEvent.wVirtualKeyCode;
 
-        Character special_key = convert_special_key_code_windows(input_key, is_shift_pressed);
+        Character special_key = convert_special_key_code_windows(input_key);
         if (special_key.character_type != NONE)
             return special_key;
     }
