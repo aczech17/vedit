@@ -20,7 +20,8 @@ typedef struct
     int size;
 }Character;
 
-int length_of_characters(char* string, int character_count);
-int character_count_of_string(char* string);
+int length_of_characters(const char* string, int character_count);
+int count_of_characters(const char* string);
+char* get_characters_range(const char* string, int lower, int upper);
 
 #endif // CHARACTER_H

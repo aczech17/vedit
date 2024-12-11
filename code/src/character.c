@@ -1,6 +1,8 @@
 #include "../headers/character.h"
+#include <stdlib.h>
+#include <string.h>
 
-int length_of_characters(char* string, int character_count)
+int length_of_characters(const char* string, int character_count)
 {
     if (character_count == 0)
         return 0;
@@ -9,9 +11,9 @@ int length_of_characters(char* string, int character_count)
     int characters_processed = 0;
 
     // iterate over bytes
-    for (int i = 0; string[i] != '\0'; ++i)
+    for (int byte_index = 0; string[byte_index] != '\0'; ++byte_index)
     {
-        unsigned char c = string[i];
+        unsigned char c = string[byte_index];
 
         if ((c & 0x80) == 0) // 1 byte: 0xxxxxxx
             byte_count += 1;
@@ -19,17 +21,17 @@ int length_of_characters(char* string, int character_count)
         else if ((c & 0xE0) == 0xC0) // 2 bytes: 110xxxxx 10xxxxxx
         {
             byte_count += 2;
-            ++i; // Skip the next byte of the character.
+            ++byte_index; // Skip the next byte of the character.
         }
         else if ((c & 0xF0) == 0xE0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
         {
             byte_count += 3;
-            i += 2; // Skip next 2 bytes of the character.
+            byte_index += 2; // Skip next 2 bytes of the character.
         }
         else if ((c & 0xF8) == 0xF0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         {
             byte_count += 4;
-            i += 3; // Skip next 3 bytes of the character.
+            byte_index += 3; // Skip next 3 bytes of the character.
         }
         else
             return -1; // Invalid UTF-8 character.
@@ -43,14 +45,14 @@ int length_of_characters(char* string, int character_count)
     return byte_count;
 }
 
-int character_count_of_string(char* string)
+int count_of_characters(const char* string)
 {
     int character_count = 0;
 
     // iterate over bytes
-    for (int i = 0; string[i] != '\0'; ++i)
+    for (int byte_index = 0; string[byte_index] != '\0'; ++byte_index)
     {
-        unsigned char c = string[i];
+        unsigned char c = string[byte_index];
 
         if ((c & 0x80) == 0) // 1 byte: 0xxxxxxx
         {
@@ -59,17 +61,17 @@ int character_count_of_string(char* string)
         else if ((c & 0xE0) == 0xC0) // 2 bytes: 110xxxxx 10xxxxxx
         {
             ++character_count;
-            ++i; // Skip 1 byte.
+            ++byte_index; // Skip 1 byte.
         }
         else if ((c & 0xF0) == 0xE0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
         {
             ++character_count;
-            i += 2; // Skip 2 bytes.
+            byte_index += 2; // Skip 2 bytes.
         }
         else if ((c & 0xF8) == 0xF0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         {
             ++character_count;
-            i += 3; // Skip 3 bytes.
+            byte_index += 3; // Skip 3 bytes.
         }
         else
         {
@@ -80,3 +82,62 @@ int character_count_of_string(char* string)
 
     return character_count;
 }
+
+
+char* get_characters_range(const char* string, int lower, int upper)
+{
+    // 1 byte: 0xxxxxxx
+    // 2 bytes: 110xxxxx 10xxxxxx
+    // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+    // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+    if (lower < 0 || lower > upper)
+        return NULL; // Invalid input.
+
+    int first_byte = -1;
+    int last_byte = -1;
+
+    int character_index = 0;
+    for (int byte_index = 0; string[byte_index] != 0 && (first_byte < 0 || last_byte < 0); ++character_index)
+    {
+        unsigned char c = string[byte_index];
+        int current_char_size = -1;
+
+        if ((c & 0x80) == 0) // 1 byte: 0xxxxxxx
+        {
+            current_char_size = 1;
+        }
+        else if ((c & 0xE0) == 0xC0) // 2 bytes: 110xxxxx 10xxxxxx
+        {
+            current_char_size = 2;
+        }
+        else if ((c & 0xF0) == 0xE0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        {
+            current_char_size = 3;
+        }
+        else if ((c & 0xF8) == 0xF0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        {
+            current_char_size = 4;
+        }
+
+        if (current_char_size < 0)
+            return NULL;
+        
+        if (character_index == lower)
+            first_byte = byte_index;
+        
+        if (character_index == upper)
+            last_byte = byte_index + current_char_size - 1;
+
+
+        byte_index += current_char_size;
+    }
+
+    int range_size = last_byte - first_byte + 1;
+    char* range = malloc(range_size + 1);
+    memcpy(range, string + first_byte, range_size);
+    range[range_size] = 0;
+
+    return range;
+}
+

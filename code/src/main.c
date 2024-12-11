@@ -119,7 +119,7 @@ int main(int argc, char** argv)
             }
             case READ_PATH:
             {
-                set_cursor_position(character_count_of_string(output_path), view.text_height + 1);
+                set_cursor_position(count_of_characters(output_path), view.text_height + 1);
                 break;
             }
             case SAVE:
@@ -173,10 +173,10 @@ int main(int argc, char** argv)
 
                 if (input_key.character_type == BACKSPACE)
                 {
-                    int output_path_character_count = character_count_of_string(output_path);
+                    int output_path_character_count = count_of_characters(output_path);
                     if (output_path_character_count == 0)
                         break;
-                        
+
                     int new_output_path_size = length_of_characters(output_path, output_path_character_count - 1);
 
                     output_end = output_path + new_output_path_size;

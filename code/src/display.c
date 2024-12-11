@@ -2,6 +2,7 @@
 #include "../headers/view.h"
 #include <stdlib.h>
 #include <string.h>
+#include "../headers/character.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -38,20 +39,27 @@ static void write_line_to_console(char* line, int screen_width, int screen_line)
 
 void print_line(const char* line, int screen_width, int cursor_x, int screen_line)
 {
-    int line_size = strlen(line);
-    char* buffer = malloc(screen_width + 1);
-    memset(buffer, ' ', screen_width);
-    buffer[screen_width] = 0;
+    char* buffer = malloc(4 * screen_width + 1);
+    memset(buffer, ' ', 4 * screen_width);
+    buffer[4 * screen_width] = 0;
 
+    int line_size = count_of_characters(line);
+
+    // Calculate the range of characters to display.
     int start_index = (cursor_x / screen_width) * screen_width;
     int end_index = start_index + screen_width;
-    if (end_index >= line_size)
+    if (end_index > line_size)
         end_index = line_size;
 
-    if (start_index < line_size)
-        strncpy(buffer, line + start_index, end_index - start_index);        
+    char* line_content = get_characters_range(line, start_index, end_index - 1); // inclusive range
+
+    if (line_content)
+        strcpy(buffer, line_content);
+
     
-    write_line_to_console(buffer, screen_width, screen_line);
+    write_line_to_console(buffer, 4 * screen_width, screen_line);
+
+    free(line_content);
     free(buffer);
 }
 
@@ -76,15 +84,15 @@ void display_text(const Text* text, const View* view)
     }
 }
 
-void clear_line(const View* view, int screen_line)
-{
-    char* empty_line = malloc(view->screen_width + 1);
-    memset(empty_line, ' ', view->screen_width);
-    empty_line[view->screen_width] = 0;
+// void clear_line(const View* view, int screen_line)
+// {
+//     char* empty_line = malloc(view->screen_width + 1);
+//     memset(empty_line, ' ', view->screen_width);
+//     empty_line[view->screen_width] = 0;
 
-    print_line(empty_line, view->screen_width, 0, screen_line);
-    free(empty_line);
-}
+//     print_line(empty_line, view->screen_width, 0, screen_line);
+//     free(empty_line);
+// }
 
 void display_log(const Text* text, const View* view, const Mode mode, const char* log_input)
 {
@@ -107,12 +115,14 @@ void display_log(const Text* text, const View* view, const Mode mode, const char
     else
         line_count = text->line_count;
 
-    sprintf(log, "%d, %d \t %d lines \t from %d MODE: %s",
-            view->cursor_x, selected_text_line, line_count, view->first_text_line, mode_to_str(mode));
+    int current_line_size = count_of_characters(text->lines[selected_text_line]);
+    int current_line_bytes = strlen(text->lines[selected_text_line]);
+    sprintf(log, "%d, %d \t %d lines \t from %d. %d characters, %d bytes. MODE: %s",
+            view->cursor_x, selected_text_line, line_count, view->first_text_line, current_line_size, current_line_bytes, mode_to_str(mode));
     write_line_to_console(log, view->screen_width, view->text_height);
 
     memset(log, ' ', view->screen_width);
-    sprintf(log, "cursor: %d, %d", view->cursor_x, view->cursor_y);
+    sprintf(log, "cursor: %d, %d. Screen width: %d", view->cursor_x, view->cursor_y, view->screen_width);
     write_line_to_console(log, view->screen_width, view->text_height + 1);
 
     free(log);
